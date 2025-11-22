@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { calculateWinRate, calculateProfitFactor } from '../lib/calculations';
 import { StatCard } from '../components/StatCard';
-import { TrendingUp, TrendingDown, Award } from 'lucide-react';
+import { TrendingUp, TrendingDown, Award, BarChart3, Target, Zap, Calendar, ChevronDown, ChevronUp } from 'lucide-react';
 
 interface DashboardStats {
   totalTrades: number;
@@ -37,6 +37,19 @@ export const DashboardPage: React.FC = () => {
     largestLoss: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    overview: true,
+    performance: true,
+    streaks: true,
+    insights: false,
+  });
+
+  const toggleSection = (section: string) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -146,91 +159,288 @@ export const DashboardPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
-        <p className="text-gray-400">Your trading performance at a glance</p>
+    <div className="space-y-8 max-w-6xl mx-auto">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-white mb-2">Trading Dashboard</h1>
+        <p className="text-gray-400 text-lg">Your complete trading performance overview</p>
+        <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-500">
+          <BarChart3 className="w-4 h-4" />
+          <span>Real-time insights & analytics</span>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <StatCard
-          label="Total Trades"
-          value={stats.totalTrades}
-          icon="📊"
-        />
-        <StatCard
-          label="Win Rate"
-          value={`${stats.winRate.toFixed(1)}%`}
-          subtitle={`${stats.wins}W / ${stats.losses}L`}
-          variant={stats.winRate >= 50 ? 'success' : 'danger'}
-          icon="📈"
-        />
-        <StatCard
-          label="Total P/L"
-          value={`$${stats.totalPL.toFixed(2)}`}
-          subtitle={`${stats.totalPLPercent.toFixed(2)}%`}
-          variant={stats.totalPL >= 0 ? 'success' : 'danger'}
-          icon={stats.totalPL >= 0 ? <TrendingUp className="w-6 h-6" /> : <TrendingDown className="w-6 h-6" />}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          label="Average R:R"
-          value={`1:${stats.avgRR}`}
-          icon="🎯"
-        />
-        <StatCard
-          label="Profit Factor"
-          value={stats.profitFactor.toFixed(2)}
-          icon="💰"
-        />
-        <StatCard
-          label="Best Streak"
-          value={stats.bestStreak}
-          icon="🔥"
-        />
-        <StatCard
-          label="Current Streak"
-          value={`${stats.currentStreak.count}${stats.currentStreak.type}`}
-          variant={stats.currentStreak.type === 'W' ? 'success' : 'danger'}
-          icon={<Award className="w-6 h-6" />}
-        />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <StatCard
-          label="Largest Win"
-          value={`$${stats.largestWin.toFixed(2)}`}
-          variant="success"
-          icon="💚"
-        />
-        <StatCard
-          label="Largest Loss"
-          value={`$${stats.largestLoss.toFixed(2)}`}
-          variant="danger"
-          icon="💔"
-        />
-      </div>
-
-      <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
-        <h2 className="text-xl font-bold text-white mb-4">Quick Stats</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-300">
-          <div>
-            <p className="text-gray-400 text-sm mb-2">Entry Type Performance</p>
-            <p className="text-white">Coming soon...</p>
+      {/* Overview Stats */}
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
+        <button
+          onClick={() => toggleSection('overview')}
+          className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <Target className="w-6 h-6 text-blue-400" />
+            <h2 className="text-xl font-bold text-white">📊 Overview Statistics</h2>
           </div>
-          <div>
-            <p className="text-gray-400 text-sm mb-2">Session Performance</p>
-            <p className="text-white">Coming soon...</p>
+          {expandedSections.overview ? (
+            <ChevronUp className="w-5 h-5 text-gray-400" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-400" />
+          )}
+        </button>
+
+        {expandedSections.overview && (
+          <div className="border-t border-slate-700 p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="bg-gradient-to-br from-blue-900 to-blue-800 border border-blue-700 rounded-lg p-6 text-center">
+                <div className="text-4xl font-bold text-blue-200 mb-2">{stats.totalTrades}</div>
+                <div className="text-blue-300 text-sm mb-1">Total Trades</div>
+                <div className="text-blue-400 text-xs">All recorded trades</div>
+              </div>
+              <div className={`bg-gradient-to-br border rounded-lg p-6 text-center ${
+                stats.winRate >= 50
+                  ? 'from-green-900 to-green-800 border-green-700'
+                  : 'from-red-900 to-red-800 border-red-700'
+              }`}>
+                <div className={`text-4xl font-bold mb-2 ${
+                  stats.winRate >= 50 ? 'text-green-200' : 'text-red-200'
+                }`}>
+                  {stats.winRate.toFixed(1)}%
+                </div>
+                <div className={`text-sm mb-1 ${
+                  stats.winRate >= 50 ? 'text-green-300' : 'text-red-300'
+                }`}>
+                  Win Rate
+                </div>
+                <div className={`text-xs ${
+                  stats.winRate >= 50 ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {stats.wins}W / {stats.losses}L
+                </div>
+              </div>
+              <div className={`bg-gradient-to-br border rounded-lg p-6 text-center ${
+                stats.totalPL >= 0
+                  ? 'from-green-900 to-green-800 border-green-700'
+                  : 'from-red-900 to-red-800 border-red-700'
+              }`}>
+                <div className={`text-3xl font-bold mb-2 ${
+                  stats.totalPL >= 0 ? 'text-green-200' : 'text-red-200'
+                }`}>
+                  ${stats.totalPL.toFixed(2)}
+                </div>
+                <div className={`text-sm mb-1 ${
+                  stats.totalPL >= 0 ? 'text-green-300' : 'text-red-300'
+                }`}>
+                  Total P/L
+                </div>
+                <div className={`text-xs ${
+                  stats.totalPL >= 0 ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  {stats.totalPLPercent.toFixed(2)}%
+                </div>
+              </div>
+            </div>
           </div>
-          <div>
-            <p className="text-gray-400 text-sm mb-2">By Day of Week</p>
-            <p className="text-white">Coming soon...</p>
+        )}
+      </div>
+
+      {/* Performance Metrics */}
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
+        <button
+          onClick={() => toggleSection('performance')}
+          className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <TrendingUp className="w-6 h-6 text-green-400" />
+            <h2 className="text-xl font-bold text-white">📈 Performance Metrics</h2>
           </div>
-          <div>
-            <p className="text-gray-400 text-sm mb-2">By Risk %</p>
-            <p className="text-white">Coming soon...</p>
+          {expandedSections.performance ? (
+            <ChevronUp className="w-5 h-5 text-gray-400" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-400" />
+          )}
+        </button>
+
+        {expandedSections.performance && (
+          <div className="border-t border-slate-700 p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-gradient-to-br from-purple-900 to-purple-800 border border-purple-700 rounded-lg p-6 text-center">
+                <div className="text-3xl font-bold text-purple-200 mb-2">1:{stats.avgRR}</div>
+                <div className="text-purple-300 text-sm mb-1">Average R:R</div>
+                <div className="text-purple-400 text-xs">Risk-reward ratio</div>
+              </div>
+              <div className="bg-gradient-to-br from-yellow-900 to-yellow-800 border border-yellow-700 rounded-lg p-6 text-center">
+                <div className="text-3xl font-bold text-yellow-200 mb-2">{stats.profitFactor.toFixed(2)}</div>
+                <div className="text-yellow-300 text-sm mb-1">Profit Factor</div>
+                <div className="text-yellow-400 text-xs">Gross profit / Gross loss</div>
+              </div>
+              <div className="bg-gradient-to-br from-orange-900 to-orange-800 border border-orange-700 rounded-lg p-6 text-center">
+                <div className="text-3xl font-bold text-orange-200 mb-2">{stats.bestStreak}</div>
+                <div className="text-orange-300 text-sm mb-1">Best Streak</div>
+                <div className="text-orange-400 text-xs">Consecutive wins/losses</div>
+              </div>
+              <div className={`bg-gradient-to-br border rounded-lg p-6 text-center ${
+                stats.currentStreak.type === 'W'
+                  ? 'from-green-900 to-green-800 border-green-700'
+                  : 'from-red-900 to-red-800 border-red-700'
+              }`}>
+                <div className={`text-3xl font-bold mb-2 ${
+                  stats.currentStreak.type === 'W' ? 'text-green-200' : 'text-red-200'
+                }`}>
+                  {stats.currentStreak.count}{stats.currentStreak.type}
+                </div>
+                <div className={`text-sm mb-1 ${
+                  stats.currentStreak.type === 'W' ? 'text-green-300' : 'text-red-300'
+                }`}>
+                  Current Streak
+                </div>
+                <div className={`text-xs ${
+                  stats.currentStreak.type === 'W' ? 'text-green-400' : 'text-red-400'
+                }`}>
+                  Active streak
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Best/Worst Trades */}
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
+        <button
+          onClick={() => toggleSection('streaks')}
+          className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <Zap className="w-6 h-6 text-yellow-400" />
+            <h2 className="text-xl font-bold text-white">⚡ Best & Worst Trades</h2>
+          </div>
+          {expandedSections.streaks ? (
+            <ChevronUp className="w-5 h-5 text-gray-400" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-400" />
+          )}
+        </button>
+
+        {expandedSections.streaks && (
+          <div className="border-t border-slate-700 p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-gradient-to-br from-green-900 to-green-800 border border-green-700 rounded-lg p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-green-600 p-2 rounded-full">
+                    <TrendingUp className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-green-200 font-bold text-lg">Largest Win</h3>
+                    <p className="text-green-400 text-sm">Your best performing trade</p>
+                  </div>
+                </div>
+                <div className="text-3xl font-bold text-green-100 mb-2">
+                  ${stats.largestWin.toFixed(2)}
+                </div>
+                <div className="text-green-300 text-sm">
+                  💚 Outstanding performance
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-red-900 to-red-800 border border-red-700 rounded-lg p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="bg-red-600 p-2 rounded-full">
+                    <TrendingDown className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-red-200 font-bold text-lg">Largest Loss</h3>
+                    <p className="text-red-400 text-sm">Your most challenging trade</p>
+                  </div>
+                </div>
+                <div className="text-3xl font-bold text-red-100 mb-2">
+                  ${stats.largestLoss.toFixed(2)}
+                </div>
+                <div className="text-red-300 text-sm">
+                  📚 Learning opportunity
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Advanced Insights */}
+      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+        <button
+          onClick={() => toggleSection('insights')}
+          className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <BarChart3 className="w-6 h-6 text-purple-400" />
+            <h2 className="text-xl font-bold text-white">🔍 Advanced Insights</h2>
+          </div>
+          {expandedSections.insights ? (
+            <ChevronUp className="w-5 h-5 text-gray-400" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-400" />
+          )}
+        </button>
+
+        {expandedSections.insights && (
+          <div className="border-t border-slate-700 p-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-slate-700 p-4 rounded-lg">
+                <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-blue-400" />
+                  Entry Type Performance
+                </h4>
+                <p className="text-gray-300 text-sm">Coming soon...</p>
+                <p className="text-gray-400 text-xs mt-2">Analyze which entry types work best for you</p>
+              </div>
+
+              <div className="bg-slate-700 p-4 rounded-lg">
+                <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
+                  <Zap className="w-4 h-4 text-green-400" />
+                  Session Performance
+                </h4>
+                <p className="text-gray-300 text-sm">Coming soon...</p>
+                <p className="text-gray-400 text-xs mt-2">Discover your most profitable trading sessions</p>
+              </div>
+
+              <div className="bg-slate-700 p-4 rounded-lg">
+                <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-purple-400" />
+                  By Day of Week
+                </h4>
+                <p className="text-gray-300 text-sm">Coming soon...</p>
+                <p className="text-gray-400 text-xs mt-2">Find patterns in weekly performance</p>
+              </div>
+
+              <div className="bg-slate-700 p-4 rounded-lg">
+                <h4 className="text-white font-semibold mb-3 flex items-center gap-2">
+                  <Target className="w-4 h-4 text-orange-400" />
+                  By Risk %
+                </h4>
+                <p className="text-gray-300 text-sm">Coming soon...</p>
+                <p className="text-gray-400 text-xs mt-2">Optimize your risk management</p>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Performance Tips */}
+      <div className="bg-gradient-to-r from-blue-900 to-purple-900 border border-blue-700 rounded-lg p-6">
+        <h3 className="text-blue-200 font-bold text-lg mb-3">💡 Performance Tips</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-blue-100">
+          <div className="bg-blue-800/50 p-3 rounded-lg">
+            <div className="font-semibold mb-1">Consistency Over Perfection</div>
+            <div className="text-sm">Focus on following your plan rather than chasing perfect trades</div>
+          </div>
+          <div className="bg-blue-800/50 p-3 rounded-lg">
+            <div className="font-semibold mb-1">Learn from Losses</div>
+            <div className="text-sm">Every loss contains valuable information for improvement</div>
+          </div>
+          <div className="bg-blue-800/50 p-3 rounded-lg">
+            <div className="font-semibold mb-1">Risk Management First</div>
+            <div className="text-sm">Protecting capital is more important than making profits</div>
+          </div>
+          <div className="bg-blue-800/50 p-3 rounded-lg">
+            <div className="font-semibold mb-1">Review Regularly</div>
+            <div className="text-sm">Weekly reviews help identify patterns and improvements</div>
           </div>
         </div>
       </div>
