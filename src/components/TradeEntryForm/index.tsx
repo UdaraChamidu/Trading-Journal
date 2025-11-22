@@ -9,7 +9,7 @@ import { M15ConfirmationTab } from './M15ConfirmationTab';
 import { M1EntryTab } from './M1EntryTab';
 import { ExecutionTab } from './ExecutionTab';
 import { PsychologyTab } from './PsychologyTab';
-import { ChevronRight, ChevronLeft } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Plus, Edit3, CheckCircle } from 'lucide-react';
 
 interface TradeFormData {
   trade_date?: string;
@@ -184,30 +184,67 @@ export const TradeEntryForm: React.FC<TradeEntryFormProps> = ({ onClose, editing
   const accountBalance = formData.account_balance || userProfile?.account_balance || 10000;
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-xl overflow-hidden">
-        <div className="bg-slate-700 p-6 border-b border-slate-600">
-          <h2 className="text-2xl font-bold text-white">{editingTrade ? 'Edit Trade' : 'New Trade'}</h2>
+    <div className="max-w-5xl mx-auto">
+      <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl overflow-hidden">
+        <div className="bg-gradient-to-r from-slate-700 to-slate-600 p-6 border-b border-slate-600">
+          <div className="flex items-center gap-3">
+            {editingTrade ? (
+              <Edit3 className="w-8 h-8 text-yellow-400" />
+            ) : (
+              <Plus className="w-8 h-8 text-green-400" />
+            )}
+            <div>
+              <h2 className="text-3xl font-bold text-white">
+                {editingTrade ? '✏️ Edit Trade' : '🎯 New Trade Entry'}
+              </h2>
+              <p className="text-gray-300 mt-1">
+                {editingTrade ? 'Update your trade details' : 'Record a new trading opportunity'}
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="p-6">
-          <div className="flex gap-2 mb-8 overflow-x-auto">
+          {/* Progress Indicator */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-sm font-medium text-gray-300">Progress</span>
+              <span className="text-sm text-gray-400">
+                Step {currentTab + 1} of {tabs.length}
+              </span>
+            </div>
+            <div className="w-full bg-slate-700 rounded-full h-2">
+              <div
+                className="bg-gradient-to-r from-blue-500 to-purple-500 h-2 rounded-full transition-all duration-300"
+                style={{ width: `${((currentTab + 1) / tabs.length) * 100}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Tab Navigation */}
+          <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
             {tabs.map((tab, index) => (
               <button
                 key={index}
                 onClick={() => setCurrentTab(index)}
-                className={`px-4 py-2 rounded-lg font-medium whitespace-nowrap transition-colors ${
+                className={`px-6 py-3 rounded-lg font-semibold whitespace-nowrap transition-all duration-200 transform hover:scale-105 ${
                   currentTab === index
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg'
+                    : index < currentTab
+                      ? 'bg-green-700 text-green-100 hover:bg-green-600'
+                      : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
                 }`}
               >
-                {tab.name}
+                <div className="flex items-center gap-2">
+                  {index < currentTab && <CheckCircle className="w-4 h-4" />}
+                  <span>{tab.name}</span>
+                </div>
               </button>
             ))}
           </div>
 
-          <div className="min-h-[400px]">
+          {/* Tab Content */}
+          <div className="min-h-[500px] bg-gradient-to-br from-slate-700 to-slate-600 rounded-lg p-6 mb-8">
             <CurrentTabComponent
               data={formData}
               onChange={handleChange}
@@ -215,42 +252,43 @@ export const TradeEntryForm: React.FC<TradeEntryFormProps> = ({ onClose, editing
             />
           </div>
 
-          <div className="flex justify-between mt-8 gap-4">
-            <div className="flex gap-2">
+          {/* Navigation Buttons */}
+          <div className="flex justify-between items-center gap-4">
+            <div className="flex gap-3">
               {currentTab > 0 && (
                 <button
                   onClick={() => setCurrentTab(currentTab - 1)}
-                  className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg text-white transition-colors"
+                  className="flex items-center gap-2 px-6 py-3 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg text-white transition-all duration-200 hover:scale-105"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-5 h-5" />
                   Previous
                 </button>
               )}
             </div>
 
-            <div className="flex gap-2">
+            <div className="flex gap-3">
               {currentTab < tabs.length - 1 && (
                 <button
                   onClick={() => setCurrentTab(currentTab + 1)}
-                  className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg text-white transition-colors"
+                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-105"
                 >
                   Next
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-5 h-5" />
                 </button>
               )}
 
               <button
                 onClick={handleSubmit}
                 disabled={loading}
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-8 py-3 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold text-lg rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-105"
               >
-                {loading ? 'Saving...' : editingTrade ? 'Update Trade' : 'Save Trade'}
+                {loading ? '💾 Saving...' : editingTrade ? '💾 Update Trade' : '💾 Save Trade'}
               </button>
 
               {onClose && (
                 <button
                   onClick={onClose}
-                  className="px-6 py-2 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg text-white transition-colors"
+                  className="px-6 py-3 bg-slate-700 hover:bg-slate-600 border border-slate-600 rounded-lg text-white transition-colors hover:scale-105"
                 >
                   Cancel
                 </button>

@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../lib/supabase';
 import { Trade } from '../types';
-import { Trash2, Edit2, Eye } from 'lucide-react';
+import { Trash2, Edit2, Eye, Filter, Download, Search, ChevronDown, ChevronUp, Table, BarChart3 } from 'lucide-react';
 
 interface AllTradesPageProps {
   onEditTrade?: (trade: Trade) => void;
@@ -22,6 +22,17 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
     direction: '',
   });
   const [sortBy, setSortBy] = useState<'date' | 'pl' | 'rr'>('date');
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    filters: true,
+    trades: true,
+  });
+
+  const toggleSection = (section: string) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
 
   useEffect(() => {
     fetchTrades();
@@ -127,169 +138,270 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-white mb-2">All Trades</h1>
-        <p className="text-gray-400">View and manage all your trades</p>
-      </div>
-
-      <div className="bg-slate-800 border border-slate-700 rounded-lg p-4 space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          <select
-            value={filters.result}
-            onChange={(e) => setFilters({ ...filters, result: e.target.value })}
-            onChangeCapture={() => setLoading(true)}
-            className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
-          >
-            <option value="">All Results</option>
-            <option value="Win">Win</option>
-            <option value="Loss">Loss</option>
-            <option value="Break Even">Break Even</option>
-          </select>
-
-          <select
-            value={filters.session}
-            onChange={(e) => setFilters({ ...filters, session: e.target.value })}
-            onChangeCapture={() => setLoading(true)}
-            className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
-          >
-            <option value="">All Sessions</option>
-            <option value="London Close">London Close</option>
-            <option value="NY Session">NY Session</option>
-            <option value="Asian Session">Asian Session</option>
-          </select>
-
-          <select
-            value={filters.direction}
-            onChange={(e) => setFilters({ ...filters, direction: e.target.value })}
-            onChangeCapture={() => setLoading(true)}
-            className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
-          >
-            <option value="">All Directions</option>
-            <option value="Long">Long</option>
-            <option value="Short">Short</option>
-          </select>
-
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as any)}
-            className="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
-          >
-            <option value="date">Sort by Date</option>
-            <option value="pl">Sort by P/L</option>
-            <option value="rr">Sort by R:R</option>
-          </select>
-
-          <button
-            onClick={handleExportCSV}
-            className="px-4 py-2 bg-green-700 hover:bg-green-600 rounded-lg text-white transition-colors font-medium"
-          >
-            Export CSV
-          </button>
+    <div className="space-y-8 max-w-7xl mx-auto">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-white mb-2">All Trades</h1>
+        <p className="text-gray-400 text-lg">Complete trade history and management</p>
+        <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-500">
+          <Table className="w-4 h-4" />
+          <span>{trades.length} trade{trades.length !== 1 ? 's' : ''} recorded</span>
         </div>
       </div>
 
+      {/* Filters and Controls */}
       <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="bg-slate-700 border-b border-slate-600">
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Date/Time</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Session</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Direction</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Entry Type</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Entry / Exit</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">R:R</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">Result</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-300">P/L</th>
-                <th className="px-6 py-3 text-center text-sm font-semibold text-gray-300">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-700">
-              {trades.length === 0 ? (
-                <tr>
-                  <td colSpan={9} className="px-6 py-8 text-center text-gray-400">
-                    No trades found
-                  </td>
-                </tr>
-              ) : (
-                trades.map((trade) => (
-                  <tr key={trade.id} className="hover:bg-slate-700 transition-colors">
-                    <td className="px-6 py-3 text-sm text-white">
-                      {trade.trade_date}
-                      <br />
-                      <span className="text-gray-400 text-xs">{trade.trade_time}</span>
-                    </td>
-                    <td className="px-6 py-3 text-sm text-white">{trade.session}</td>
-                    <td className="px-6 py-3 text-sm text-white">
-                      <span className={trade.direction === 'Long' ? 'text-green-400' : 'text-red-400'}>
-                        {trade.direction}
-                      </span>
-                    </td>
-                    <td className="px-6 py-3 text-sm text-white">{trade.m1_entry_type || '-'}</td>
-                    <td className="px-6 py-3 text-sm text-white">
-                      {trade.entry_price.toFixed(2)}
-                      {trade.exit_price && (
-                        <>
-                          <br />
-                          <span className="text-gray-400 text-xs">{trade.exit_price.toFixed(2)}</span>
-                        </>
-                      )}
-                    </td>
-                    <td className="px-6 py-3 text-sm text-white">
-                      {trade.risk_reward_ratio ? `1:${trade.risk_reward_ratio}` : '-'}
-                    </td>
-                    <td className="px-6 py-3 text-sm">
-                      <span
-                        className={`px-2 py-1 rounded text-xs font-medium ${
-                          trade.trade_result === 'Win'
-                            ? 'bg-green-900 text-green-100'
-                            : trade.trade_result === 'Loss'
-                              ? 'bg-red-900 text-red-100'
-                              : 'bg-yellow-900 text-yellow-100'
-                        }`}
-                      >
-                        {trade.trade_result || '-'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-3 text-sm">
-                      <span className={trade.pl_dollar && trade.pl_dollar >= 0 ? 'text-green-400' : 'text-red-400'}>
-                        ${trade.pl_dollar ? trade.pl_dollar.toFixed(2) : '0.00'}
-                      </span>
-                      {trade.pl_percent && (
-                        <div className="text-xs text-gray-400">{trade.pl_percent.toFixed(2)}%</div>
-                      )}
-                    </td>
-                    <td className="px-6 py-3 text-center">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          onClick={() => onViewTrade?.(trade)}
-                          className="p-1 hover:bg-slate-600 rounded transition-colors text-blue-400"
-                          title="View"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => onEditTrade?.(trade)}
-                          className="p-1 hover:bg-slate-600 rounded transition-colors text-yellow-400"
-                          title="Edit"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(trade.id)}
-                          className="p-1 hover:bg-slate-600 rounded transition-colors text-red-400"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
+        <button
+          onClick={() => toggleSection('filters')}
+          className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <Filter className="w-6 h-6 text-blue-400" />
+            <h2 className="text-xl font-bold text-white">🔍 Filters & Controls</h2>
+          </div>
+          {expandedSections.filters ? (
+            <ChevronUp className="w-5 h-5 text-gray-400" />
+          ) : (
+            <ChevronDown className="w-5 h-5 text-gray-400" />
+          )}
+        </button>
+
+        {expandedSections.filters && (
+          <div className="border-t border-slate-700 p-6">
+            <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-6 rounded-lg space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="bg-slate-800 p-3 rounded-lg">
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">Result</label>
+                  <select
+                    value={filters.result}
+                    onChange={(e) => setFilters({ ...filters, result: e.target.value })}
+                    onChangeCapture={() => setLoading(true)}
+                    className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm"
+                  >
+                    <option value="">All Results</option>
+                    <option value="Win">✅ Win</option>
+                    <option value="Loss">❌ Loss</option>
+                    <option value="Break Even">⚪ Break Even</option>
+                  </select>
+                </div>
+
+                <div className="bg-slate-800 p-3 rounded-lg">
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">Session</label>
+                  <select
+                    value={filters.session}
+                    onChange={(e) => setFilters({ ...filters, session: e.target.value })}
+                    onChangeCapture={() => setLoading(true)}
+                    className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm"
+                  >
+                    <option value="">All Sessions</option>
+                    <option value="London Close">🌅 London Close</option>
+                    <option value="NY Session">🌆 NY Session</option>
+                    <option value="Asian Session">🌄 Asian Session</option>
+                  </select>
+                </div>
+
+                <div className="bg-slate-800 p-3 rounded-lg">
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">Direction</label>
+                  <select
+                    value={filters.direction}
+                    onChange={(e) => setFilters({ ...filters, direction: e.target.value })}
+                    onChangeCapture={() => setLoading(true)}
+                    className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm"
+                  >
+                    <option value="">All Directions</option>
+                    <option value="Long">📈 Long</option>
+                    <option value="Short">📉 Short</option>
+                  </select>
+                </div>
+
+                <div className="bg-slate-800 p-3 rounded-lg">
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">Sort By</label>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as any)}
+                    className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm"
+                  >
+                    <option value="date">📅 Date</option>
+                    <option value="pl">💰 P/L</option>
+                    <option value="rr">🎯 R:R Ratio</option>
+                  </select>
+                </div>
+
+                <div className="bg-slate-800 p-3 rounded-lg">
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">Export</label>
+                  <button
+                    onClick={handleExportCSV}
+                    className="w-full px-4 py-2 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-200 transform hover:scale-105 text-sm"
+                  >
+                    📊 CSV Export
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Trades Table */}
+      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+        <button
+          onClick={() => toggleSection('trades')}
+          className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <BarChart3 className="w-6 h-6 text-purple-400" />
+            <h2 className="text-xl font-bold text-white">📋 Trade History</h2>
+          </div>
+          <div className="text-sm text-gray-400">
+            {trades.length} trade{trades.length !== 1 ? 's' : ''} displayed
+          </div>
+        </button>
+
+        {expandedSections.trades && (
+          <div className="border-t border-slate-700">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gradient-to-r from-slate-700 to-slate-600">
+                  <tr>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-white">📅 Date/Time</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-white">🌍 Session</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-white">📈 Direction</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-white">🎯 Entry Type</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-white">💰 Entry / Exit</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-white">⚖️ R:R</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-white">📊 Result</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-white">💵 P/L</th>
+                    <th className="px-6 py-4 text-center text-sm font-bold text-white">⚙️ Actions</th>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                </thead>
+                <tbody className="divide-y divide-slate-700">
+                  {trades.length === 0 ? (
+                    <tr>
+                      <td colSpan={9} className="px-6 py-12 text-center">
+                        <div className="text-gray-400">
+                          <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                          <p className="text-lg mb-2">No trades found</p>
+                          <p className="text-sm">Try adjusting your filters or add your first trade</p>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    trades.map((trade, index) => (
+                      <tr key={trade.id} className="hover:bg-slate-700/50 transition-all duration-200">
+                        <td className="px-6 py-4">
+                          <div className="text-white font-medium">{trade.trade_date}</div>
+                          <div className="text-gray-400 text-sm">{trade.trade_time}</div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="bg-slate-600 text-white px-3 py-1 rounded-full text-sm font-medium">
+                            {trade.session}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`font-bold text-lg ${
+                            trade.direction === 'Long' ? 'text-green-400' : 'text-red-400'
+                          }`}>
+                            {trade.direction === 'Long' ? '📈' : '📉'} {trade.direction}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="text-white">{trade.m1_entry_type || '—'}</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-white font-mono">
+                            ${trade.entry_price.toFixed(2)}
+                          </div>
+                          {trade.exit_price && (
+                            <div className="text-gray-400 text-sm font-mono">
+                              ${trade.exit_price.toFixed(2)}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="bg-purple-900 text-purple-100 px-3 py-1 rounded-full text-sm font-bold">
+                            {trade.risk_reward_ratio ? `1:${trade.risk_reward_ratio}` : '—'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className={`px-3 py-1 rounded-full text-sm font-bold ${
+                            trade.trade_result === 'Win'
+                              ? 'bg-green-900 text-green-100'
+                              : trade.trade_result === 'Loss'
+                                ? 'bg-red-900 text-red-100'
+                                : 'bg-yellow-900 text-yellow-100'
+                          }`}>
+                            {trade.trade_result === 'Win' && '✅ '}
+                            {trade.trade_result === 'Loss' && '❌ '}
+                            {trade.trade_result === 'Break Even' && '⚪ '}
+                            {trade.trade_result || '—'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className={`font-bold text-lg ${
+                            trade.pl_dollar && trade.pl_dollar >= 0 ? 'text-green-400' : 'text-red-400'
+                          }`}>
+                            ${trade.pl_dollar ? trade.pl_dollar.toFixed(2) : '0.00'}
+                          </div>
+                          {trade.pl_percent && (
+                            <div className="text-gray-400 text-sm">
+                              {trade.pl_percent >= 0 ? '+' : ''}{trade.pl_percent.toFixed(2)}%
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => onViewTrade?.(trade)}
+                              className="p-2 hover:bg-blue-600 rounded-lg transition-colors text-blue-400 hover:text-white"
+                              title="View Trade Details"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => onEditTrade?.(trade)}
+                              className="p-2 hover:bg-yellow-600 rounded-lg transition-colors text-yellow-400 hover:text-white"
+                              title="Edit Trade"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(trade.id)}
+                              className="p-2 hover:bg-red-600 rounded-lg transition-colors text-red-400 hover:text-white"
+                              title="Delete Trade"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Trade Management Tips */}
+      <div className="bg-gradient-to-r from-blue-900 to-purple-900 border border-blue-700 rounded-lg p-6">
+        <h3 className="text-blue-200 font-bold text-lg mb-3">💡 Trade Management Tips</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-blue-100">
+          <div className="bg-blue-800/50 p-3 rounded-lg">
+            <div className="font-semibold mb-1">Regular Review</div>
+            <div className="text-sm">Review your trades weekly to identify patterns and improvements</div>
+          </div>
+          <div className="bg-blue-800/50 p-3 rounded-lg">
+            <div className="font-semibold mb-1">Data Export</div>
+            <div className="text-sm">Export your data regularly for backup and external analysis</div>
+          </div>
+          <div className="bg-blue-800/50 p-3 rounded-lg">
+            <div className="font-semibold mb-1">Filter Analysis</div>
+            <div className="text-sm">Use filters to analyze performance by session, direction, or result</div>
+          </div>
+          <div className="bg-blue-800/50 p-3 rounded-lg">
+            <div className="font-semibold mb-1">Risk Assessment</div>
+            <div className="text-sm">Monitor your R:R ratios and ensure consistent risk management</div>
+          </div>
         </div>
       </div>
     </div>
