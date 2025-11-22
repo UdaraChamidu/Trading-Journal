@@ -36,7 +36,7 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
 
   useEffect(() => {
     fetchTrades();
-  }, [session]);
+  }, [session, filters, sortBy]);
 
   const fetchTrades = async () => {
     if (!session) return;
@@ -139,10 +139,13 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
 
   return (
     <div className="space-y-8 max-w-7xl mx-auto">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-white mb-2">All Trades</h1>
+      <div className="text-center mb-8">
+        <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 to-purple-600 px-6 py-3 rounded-full mb-4 shadow-lg shadow-blue-500/25">
+          <Table className="w-6 h-6 text-white" />
+          <h1 className="text-2xl font-bold text-white">All Trades</h1>
+        </div>
         <p className="text-gray-400 text-lg">Complete trade history and management</p>
-        <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-500">
+        <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-500 bg-slate-800/50 px-4 py-2 rounded-lg inline-flex">
           <Table className="w-4 h-4" />
           <span>{trades.length} trade{trades.length !== 1 ? 's' : ''} recorded</span>
         </div>
@@ -152,11 +155,13 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
       <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('filters')}
-          className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
+          className="w-full flex items-center justify-between p-6 hover:bg-slate-700/50 transition-all duration-200"
         >
           <div className="flex items-center gap-3">
-            <Filter className="w-6 h-6 text-blue-400" />
-            <h2 className="text-xl font-bold text-white">🔍 Filters & Controls</h2>
+            <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg">
+              <Filter className="w-5 h-5 text-white" />
+            </div>
+            <h2 className="text-xl font-bold text-white">Filters & Controls</h2>
           </div>
           {expandedSections.filters ? (
             <ChevronUp className="w-5 h-5 text-gray-400" />
@@ -174,7 +179,6 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
                   <select
                     value={filters.result}
                     onChange={(e) => setFilters({ ...filters, result: e.target.value })}
-                    onChangeCapture={() => setLoading(true)}
                     className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm"
                   >
                     <option value="">All Results</option>
@@ -189,7 +193,6 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
                   <select
                     value={filters.session}
                     onChange={(e) => setFilters({ ...filters, session: e.target.value })}
-                    onChangeCapture={() => setLoading(true)}
                     className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm"
                   >
                     <option value="">All Sessions</option>
@@ -204,7 +207,6 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
                   <select
                     value={filters.direction}
                     onChange={(e) => setFilters({ ...filters, direction: e.target.value })}
-                    onChangeCapture={() => setLoading(true)}
                     className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm"
                   >
                     <option value="">All Directions</option>
@@ -245,11 +247,13 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
       <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('trades')}
-          className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
+          className="w-full flex items-center justify-between p-6 hover:bg-slate-700/50 transition-all duration-200"
         >
           <div className="flex items-center gap-3">
-            <BarChart3 className="w-6 h-6 text-purple-400" />
-            <h2 className="text-xl font-bold text-white">📋 Trade History</h2>
+            <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg">
+              <BarChart3 className="w-5 h-5 text-white" />
+            </div>
+            <h2 className="text-xl font-bold text-white">Trade History</h2>
           </div>
           <div className="text-sm text-gray-400">
             {trades.length} trade{trades.length !== 1 ? 's' : ''} displayed
