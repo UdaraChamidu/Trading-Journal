@@ -33,7 +33,7 @@ export const TradingPlanPage: React.FC = () => {
       </div>
 
       {/* Account Overview */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('overview')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
@@ -78,7 +78,7 @@ export const TradingPlanPage: React.FC = () => {
       </div>
 
       {/* Trading Methodology */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('methodology')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
@@ -188,7 +188,7 @@ export const TradingPlanPage: React.FC = () => {
       </div>
 
       {/* Position Management */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('management')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
@@ -275,7 +275,7 @@ export const TradingPlanPage: React.FC = () => {
       </div>
 
       {/* Trading Schedule */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('schedule')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
@@ -352,7 +352,7 @@ export const TradingPlanPage: React.FC = () => {
       </div>
 
       {/* Pre-trade Checklist */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('checklist')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
@@ -462,7 +462,7 @@ export const TradingPlanPage: React.FC = () => {
       </div>
 
       {/* Psychology & Discipline */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('psychology')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
@@ -514,7 +514,7 @@ export const TradingPlanPage: React.FC = () => {
       </div>
 
       {/* Continuous Improvement */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('improvement')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
@@ -566,7 +566,7 @@ export const TradingPlanPage: React.FC = () => {
       </div>
 
       {/* Risk Warnings */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('warnings')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
@@ -597,7 +597,7 @@ export const TradingPlanPage: React.FC = () => {
       </div>
 
       {/* Success Metrics */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('metrics')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
@@ -651,7 +651,7 @@ export const TradingPlanPage: React.FC = () => {
       </div>
 
       {/* Final Notes */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('notes')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"

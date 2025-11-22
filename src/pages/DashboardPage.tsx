@@ -170,7 +170,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Overview Stats */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('overview')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
@@ -242,7 +242,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Performance Metrics */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('performance')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
@@ -303,7 +303,7 @@ export const DashboardPage: React.FC = () => {
       </div>
 
       {/* Best/Worst Trades */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('streaks')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"

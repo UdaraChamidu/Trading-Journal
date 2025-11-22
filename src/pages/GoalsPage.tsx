@@ -161,7 +161,7 @@ export const GoalsPage: React.FC = () => {
       </div>
 
       {/* Add/Edit Goal Section */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('addGoal')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
@@ -283,7 +283,7 @@ export const GoalsPage: React.FC = () => {
       </div>
 
       {/* Your Goals Section */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('yourGoals')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"

@@ -101,7 +101,7 @@ export const SettingsPage: React.FC = () => {
       </div>
 
       {/* Account Settings */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('account')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
@@ -191,7 +191,7 @@ export const SettingsPage: React.FC = () => {
       </div>
 
       {/* Display Settings */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('display')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
@@ -241,7 +241,7 @@ export const SettingsPage: React.FC = () => {
       </div>
 
       {/* Data Management */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('data')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
@@ -289,7 +289,7 @@ export const SettingsPage: React.FC = () => {
       </div>
 
       {/* Account Information */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('profile')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"

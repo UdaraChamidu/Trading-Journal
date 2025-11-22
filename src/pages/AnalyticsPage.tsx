@@ -107,7 +107,7 @@ export const AnalyticsPage: React.FC = () => {
       </div>
 
       {/* Performance by Session */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('session')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
@@ -189,7 +189,7 @@ export const AnalyticsPage: React.FC = () => {
       </div>
 
       {/* Performance by Entry Type */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('entryType')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
@@ -270,7 +270,7 @@ export const AnalyticsPage: React.FC = () => {
       </div>
 
       {/* Performance by Day of Week */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('dayOfWeek')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"

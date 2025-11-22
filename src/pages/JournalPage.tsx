@@ -126,7 +126,7 @@ export const JournalPage: React.FC = () => {
       </div>
 
       {/* Add New Note Section */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('addNote')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
@@ -167,7 +167,7 @@ export const JournalPage: React.FC = () => {
       </div>
 
       {/* Recent Notes Section */}
-      <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+      <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
           onClick={() => toggleSection('recentNotes')}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700 transition-colors"
