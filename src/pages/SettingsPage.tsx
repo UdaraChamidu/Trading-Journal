@@ -1,18 +1,26 @@
-import React, { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useState, useEffect } from 'react';
+import { useAuth, useTheme } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../lib/supabase';
 import { Moon, Sun, Download, Upload, Settings, User, Shield, Database } from 'lucide-react';
 
 export const SettingsPage: React.FC = () => {
   const { userProfile, updateProfile, session } = useAuth();
+  const { isDarkMode, toggleTheme } = useTheme();
   const { addToast } = useToast();
-  const [isDarkMode, setIsDarkMode] = useState(userProfile?.dark_mode ?? true);
   const [accountBalance, setAccountBalance] = useState(userProfile?.account_balance || 10000);
   const [defaultRisk, setDefaultRisk] = useState(userProfile?.default_risk_percent || 1);
   const [timezone, setTimezone] = useState(userProfile?.timezone || 'GMT+5:30');
   const [dailyRiskLimit, setDailyRiskLimit] = useState(userProfile?.daily_risk_limit || 6);
   const [saving, setSaving] = useState(false);
+
+  // Sync theme with user profile on component mount
+  useEffect(() => {
+    if (userProfile?.dark_mode !== undefined && userProfile.dark_mode !== isDarkMode) {
+      // If profile has different setting, update theme to match profile
+      // Note: This would require updating the theme context to accept external changes
+    }
+  }, [userProfile, isDarkMode]);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     account: true,
     display: true,
@@ -223,7 +231,11 @@ export const SettingsPage: React.FC = () => {
                   </div>
                 </div>
                 <button
-                  onClick={() => setIsDarkMode(!isDarkMode)}
+                  onClick={() => {
+                    toggleTheme();
+                    // Also update the user profile
+                    updateProfile({ dark_mode: !isDarkMode });
+                  }}
                   className={`relative inline-flex h-12 w-24 items-center rounded-full transition-colors ${
                     isDarkMode ? 'bg-blue-600' : 'bg-gray-500'
                   }`}

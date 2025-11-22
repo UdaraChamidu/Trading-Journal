@@ -3,6 +3,41 @@ import { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { UserProfile } from '../types';
 
+// Theme context for managing dark/light mode
+interface ThemeContextType {
+  isDarkMode: boolean;
+  toggleTheme: () => void;
+  setThemeFromProfile: (darkMode: boolean) => void;
+}
+
+const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+
+export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isDarkMode, setIsDarkMode] = useState(true); // Default to dark mode
+
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+  };
+
+  const setThemeFromProfile = (darkMode: boolean) => {
+    setIsDarkMode(darkMode);
+  };
+
+  return (
+    <ThemeContext.Provider value={{ isDarkMode, toggleTheme, setThemeFromProfile }}>
+      {children}
+    </ThemeContext.Provider>
+  );
+};
+
+export const useTheme = () => {
+  const context = useContext(ThemeContext);
+  if (!context) {
+    throw new Error('useTheme must be used within ThemeProvider');
+  }
+  return context;
+};
+
 interface AuthContextType {
   session: Session | null;
   userProfile: UserProfile | null;
