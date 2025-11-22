@@ -1,0 +1,124 @@
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { Session } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
+import { UserProfile } from '../types';
+
+interface AuthContextType {
+  session: Session | null;
+  userProfile: UserProfile | null;
+  loading: boolean;
+  signUp: (email: string, password: string) => Promise<{ error: any }>;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signOut: () => Promise<void>;
+  updateProfile: (updates: Partial<UserProfile>) => Promise<{ error: any }>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [session, setSession] = useState<Session | null>(null);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const getSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      setSession(data.session);
+
+      if (data.session) {
+        await fetchUserProfile(data.session.user.id);
+      }
+
+      setLoading(false);
+    };
+
+    getSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      setSession(session);
+      if (session) {
+        await fetchUserProfile(session.user.id);
+      } else {
+        setUserProfile(null);
+      }
+    });
+
+    return () => {
+      authListener?.subscription?.unsubscribe();
+    };
+  }, []);
+
+  const fetchUserProfile = async (userId: string) => {
+    const { data, error } = await supabase
+      .from('users_profile')
+      .select('*')
+      .eq('id', userId)
+      .maybeSingle();
+
+    if (error) {
+      console.error('Error fetching profile:', error);
+      return;
+    }
+
+    if (!data) {
+      const { data: newProfile } = await supabase
+        .from('users_profile')
+        .insert([{ id: userId }])
+        .select()
+        .single();
+      setUserProfile(newProfile);
+    } else {
+      setUserProfile(data);
+    }
+  };
+
+  const signUp = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+    return { error };
+  };
+
+  const signIn = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    return { error };
+  };
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    setUserProfile(null);
+  };
+
+  const updateProfile = async (updates: Partial<UserProfile>) => {
+    if (!session) return { error: 'No session' };
+
+    const { error } = await supabase
+      .from('users_profile')
+      .update(updates)
+      .eq('id', session.user.id);
+
+    if (!error) {
+      setUserProfile((prev) => (prev ? { ...prev, ...updates } : null));
+    }
+
+    return { error };
+  };
+
+  return (
+    <AuthContext.Provider value={{ session, userProfile, loading, signUp, signIn, signOut, updateProfile }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within AuthProvider');
+  }
+  return context;
+};
