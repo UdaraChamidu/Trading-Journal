@@ -1,5 +1,5 @@
 import React, { useState, Suspense, lazy } from 'react';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { AuthProvider, useAuth, ThemeProvider, useTheme } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { AuthPage } from './pages/AuthPage';
 import { Navigation } from './components/Navigation';
@@ -19,14 +19,24 @@ const GoalsPage = lazy(() => import('./pages/GoalsPage').then(module => ({ defau
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then(module => ({ default: module.SettingsPage })));
 
 const AppContent: React.FC = () => {
-  const { session, loading } = useAuth();
+  const { session, loading, userProfile } = useAuth();
+  const { isDarkMode, setThemeFromProfile } = useTheme();
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
 
+  // Sync theme with user profile
+  React.useEffect(() => {
+    if (userProfile?.dark_mode !== undefined) {
+      setThemeFromProfile(userProfile.dark_mode);
+    }
+  }, [userProfile, setThemeFromProfile]);
+
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="text-gray-400">Loading...</div>
+      <div className={`min-h-screen flex items-center justify-center ${
+        isDarkMode ? 'bg-slate-900' : 'bg-gray-100'
+      }`}>
+        <div className={isDarkMode ? 'text-gray-400' : 'text-gray-600'}>Loading...</div>
       </div>
     );
   }
@@ -78,7 +88,7 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-900">
+    <div className={`min-h-screen ${isDarkMode ? 'bg-slate-900' : 'bg-gray-100'}`}>
       <Navigation currentPage={currentPage} onPageChange={(page) => {
         setCurrentPage(page);
         setEditingTrade(null);
@@ -86,8 +96,10 @@ const AppContent: React.FC = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Suspense fallback={
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="text-gray-400">Loading...</div>
+          <div className={`flex items-center justify-center min-h-screen ${
+            isDarkMode ? 'text-gray-400' : 'text-gray-600'
+          }`}>
+            Loading...
           </div>
         }>
           {renderPage()}
@@ -101,11 +113,13 @@ const AppContent: React.FC = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <AppContent />
-      </ToastProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <ToastProvider>
+          <AppContent />
+        </ToastProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
