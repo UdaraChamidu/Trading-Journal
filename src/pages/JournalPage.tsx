@@ -104,7 +104,7 @@ export const JournalPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-8 max-w-3xl">
+    <div className="space-y-8 max-w-3xl mx-auto">
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">Trading Journal</h1>
         <p className="text-gray-400">General observations and market notes</p>

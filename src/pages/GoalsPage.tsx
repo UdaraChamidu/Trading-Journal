@@ -139,7 +139,7 @@ export const GoalsPage: React.FC = () => {
   }
 
   return (
-    <div className="space-y-8 max-w-3xl">
+    <div className="space-y-8 max-w-3xl mx-auto">
       <div>
         <h1 className="text-3xl font-bold text-white mb-2">Monthly Goals</h1>
         <p className="text-gray-400">Set and track your trading goals</p>
