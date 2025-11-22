@@ -21,75 +21,104 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const getSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      setSession(data.session);
+    let mounted = true;
 
-      if (data.session) {
-        await fetchUserProfile(data.session.user.id);
+    async function initializeAuth() {
+      try {
+        // 1. Get initial session
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        
+        if (mounted) {
+          setSession(initialSession);
+          if (initialSession) {
+            await fetchUserProfile(initialSession.user.id);
+          }
+        }
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+      } finally {
+        // 2. Ensure loading is set to false ONLY after initial check is done
+        if (mounted) {
+          setLoading(false);
+        }
       }
 
-      setLoading(false);
-    };
+      // 3. Listen for changes
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+        if (mounted) {
+          setSession(currentSession);
+          
+          if (currentSession) {
+            // Only fetch profile if we don't have it or if the user changed
+            // This prevents double-fetching on refresh
+            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+               await fetchUserProfile(currentSession.user.id);
+            }
+          } else {
+            setUserProfile(null);
+          }
+          
+          // Ensure loading is false after any auth change
+          setLoading(false); 
+        }
+      });
 
-    getSession();
+      return () => {
+        mounted = false;
+        subscription.unsubscribe();
+      };
+    }
 
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setSession(session);
-      if (session) {
-        await fetchUserProfile(session.user.id);
-      } else {
-        setUserProfile(null);
-      }
-    });
-
-    return () => {
-      authListener?.subscription?.unsubscribe();
-    };
+    initializeAuth();
   }, []);
 
   const fetchUserProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from('users_profile')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle();
-
-    if (error) {
-      console.error('Error fetching profile:', error);
-      return;
-    }
-
-    if (!data) {
-      const { data: newProfile } = await supabase
+    try {
+      const { data, error } = await supabase
         .from('users_profile')
-        .insert([{ id: userId }])
-        .select()
-        .single();
-      setUserProfile(newProfile);
-    } else {
-      setUserProfile(data);
+        .select('*')
+        .eq('id', userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return; // Don't throw, just return
+      }
+
+      if (!data) {
+        // Profile doesn't exist, create it
+        const { data: newProfile, error: insertError } = await supabase
+          .from('users_profile')
+          .insert([{ id: userId }])
+          .select()
+          .single();
+          
+        if (insertError) {
+           console.error("Error creating profile:", insertError);
+        } else {
+           setUserProfile(newProfile);
+        }
+      } else {
+        setUserProfile(data);
+      }
+    } catch (err) {
+      console.error("Unexpected error in fetchUserProfile:", err);
     }
   };
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+    const { error } = await supabase.auth.signUp({ email, password });
     return { error };
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error };
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setSession(null);
     setUserProfile(null);
   };
 
