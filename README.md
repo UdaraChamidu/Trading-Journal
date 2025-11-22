@@ -4,7 +4,7 @@
 - **Starting Capital:** $100
 - **Risk Per Trade:** 1-2% ($1-$2)
 - **Status:** Practice/Learning Phase
-- **Primary Asset:** BTC/USD
+- **Primary Asset:** BTC/USD 
 - **Trading Style:** Multi-timeframe ICT (Smart Money Concepts)
 
 ---
