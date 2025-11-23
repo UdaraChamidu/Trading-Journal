@@ -1,31 +1,46 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '../contexts/ToastContext';
-import { supabase } from '../lib/supabase';
-import { Trade } from '../types';
-import { Trash2, Edit2, Eye, Filter, Download, Search, ChevronDown, ChevronUp, Table, BarChart3 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { useToast } from "../contexts/ToastContext";
+import { supabase } from "../lib/supabase";
+import { Trade } from "../types";
+import {
+  Trash2,
+  Edit2,
+  Eye,
+  Filter,
+  Download,
+  Search,
+  ChevronDown,
+  ChevronUp,
+  Table,
+  BarChart3,
+} from "lucide-react";
 
 interface AllTradesPageProps {
   onEditTrade?: (trade: Trade) => void;
   onViewTrade?: (trade: Trade) => void;
 }
 
-export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onViewTrade }) => {
+export const AllTradesPage: React.FC<AllTradesPageProps> = ({
+  onEditTrade,
+  onViewTrade,
+}) => {
   const { session } = useAuth();
   const { addToast } = useToast();
   const [trades, setTrades] = useState<Trade[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({
-    result: '',
-    session: '',
-    entryType: '',
-    direction: '',
-  });
-  const [sortBy, setSortBy] = useState<'date' | 'pl' | 'rr'>('date');
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+  const [resultFilter, setResultFilter] = useState("");
+  const [sessionFilter, setSessionFilter] = useState("");
+  const [directionFilter, setDirectionFilter] = useState("");
+  const [entryTypeFilter, setEntryTypeFilter] = useState("");
+  const [sortBy, setSortBy] = useState<"date" | "pl" | "rr">("date");
+  const [expandedSections, setExpandedSections] = useState<
+    Record<string, boolean>
+  >({
     filters: true,
     trades: true,
   });
+  const isInitialLoad = useRef(true);
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => ({
@@ -35,96 +50,167 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
   };
 
   useEffect(() => {
-    fetchTrades();
-  }, [session, filters, sortBy]);
+    if (session) {
+      const showLoading = isInitialLoad.current;
+      fetchTrades(showLoading);
+      isInitialLoad.current = false;
+    }
+  }, [
+    session,
+    resultFilter,
+    sessionFilter,
+    directionFilter,
+    entryTypeFilter,
+    sortBy,
+  ]);
 
-  const fetchTrades = async () => {
-    if (!session) return;
+  const fetchTrades = async (showLoading = true) => {
+    if (!session) {
+      console.log("No session, returning");
+      return;
+    }
+
+    console.log(
+      "Fetching trades with showLoading:",
+      showLoading,
+      "resultFilter:",
+      resultFilter,
+      "sessionFilter:",
+      sessionFilter,
+      "directionFilter:",
+      directionFilter,
+      "sortBy:",
+      sortBy
+    );
+
+    if (showLoading) {
+      setLoading(true);
+    }
 
     try {
+      console.log(
+        "Fetching trades with filters - result:",
+        resultFilter,
+        "session:",
+        sessionFilter,
+        "direction:",
+        directionFilter,
+        "sortBy:",
+        sortBy
+      );
+
       let query = supabase
-        .from('trades')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .order('trade_date', { ascending: false });
+        .from("trades")
+        .select("*")
+        .eq("user_id", session.user.id)
+        .order("trade_date", { ascending: false });
 
-      if (filters.result) query = query.eq('trade_result', filters.result);
-      if (filters.session) query = query.eq('session', filters.session);
-      if (filters.direction) query = query.eq('direction', filters.direction);
-      if (filters.entryType) query = query.eq('m1_entry_type', filters.entryType);
+      // Apply filters
+      if (resultFilter && resultFilter !== "") {
+        query = query.eq("trade_result", resultFilter);
+        console.log("Applying result filter:", resultFilter);
+      }
+      if (sessionFilter && sessionFilter !== "") {
+        query = query.eq("session", sessionFilter);
+        console.log("Applying session filter:", sessionFilter);
+      }
+      if (directionFilter && directionFilter !== "") {
+        query = query.eq("direction", directionFilter);
+        console.log("Applying direction filter:", directionFilter);
+      }
+      if (entryTypeFilter && entryTypeFilter !== "") {
+        query = query.eq("m1_entry_type", entryTypeFilter);
+        console.log("Applying entryType filter:", entryTypeFilter);
+      }
 
-      const { data } = await query;
+      const { data, error } = await query;
+
+      if (error) {
+        console.error("Supabase error:", error);
+        addToast("Error loading trades", "error");
+        return;
+      }
+
+      console.log("Fetched data:", data);
 
       if (data) {
         let sorted = [...data];
-        if (sortBy === 'pl') {
+        if (sortBy === "pl") {
           sorted.sort((a, b) => (b.pl_dollar || 0) - (a.pl_dollar || 0));
-        } else if (sortBy === 'rr') {
-          sorted.sort((a, b) => (b.risk_reward_ratio || 0) - (a.risk_reward_ratio || 0));
+          console.log("Sorted by P&L");
+        } else if (sortBy === "rr") {
+          sorted.sort(
+            (a, b) => (b.risk_reward_ratio || 0) - (a.risk_reward_ratio || 0)
+          );
+          console.log("Sorted by R:R");
         }
+        console.log("Setting trades:", sorted.length, "trades");
         setTrades(sorted);
+      } else {
+        console.log("No data returned");
+        setTrades([]);
       }
     } catch (error) {
-      console.error('Error fetching trades:', error);
-      addToast('Error loading trades', 'error');
+      console.error("Error fetching trades:", error);
+      addToast("Error loading trades", "error");
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (tradeId: string) => {
-    if (!window.confirm('Are you sure you want to delete this trade?')) return;
+    if (!window.confirm("Are you sure you want to delete this trade?")) return;
 
     try {
       const { error } = await supabase
-        .from('trades')
+        .from("trades")
         .delete()
-        .eq('id', tradeId);
+        .eq("id", tradeId);
 
       if (error) throw error;
 
       setTrades(trades.filter((t) => t.id !== tradeId));
-      addToast('Trade deleted successfully', 'success');
+      addToast("Trade deleted successfully", "success");
     } catch (error: any) {
-      console.error('Error deleting trade:', error);
-      addToast('Error deleting trade', 'error');
+      console.error("Error deleting trade:", error);
+      addToast("Error deleting trade", "error");
     }
   };
 
   const handleExportCSV = () => {
     const headers = [
-      'Date',
-      'Time',
-      'Session',
-      'Direction',
-      'Entry Type',
-      'Entry',
-      'Exit',
-      'R:R',
-      'Result',
-      'P/L ($)',
-      'P/L (%)',
+      "Date",
+      "Time",
+      "Session",
+      "Direction",
+      "Entry Type",
+      "Entry",
+      "Exit",
+      "R:R",
+      "Result",
+      "P/L ($)",
+      "P/L (%)",
     ];
     const rows = trades.map((t) => [
       t.trade_date,
       t.trade_time,
       t.session,
       t.direction,
-      t.m1_entry_type || '-',
+      t.m1_entry_type || "-",
       t.entry_price.toFixed(2),
-      t.exit_price ? t.exit_price.toFixed(2) : '-',
-      t.risk_reward_ratio ? `1:${t.risk_reward_ratio}` : '-',
-      t.trade_result || '-',
-      t.pl_dollar ? t.pl_dollar.toFixed(2) : '-',
-      t.pl_percent ? t.pl_percent.toFixed(2) : '-',
+      t.exit_price ? t.exit_price.toFixed(2) : "-",
+      t.risk_reward_ratio ? `1:${t.risk_reward_ratio}` : "-",
+      t.trade_result || "-",
+      t.pl_dollar ? t.pl_dollar.toFixed(2) : "-",
+      t.pl_percent ? t.pl_percent.toFixed(2) : "-",
     ]);
 
-    const csv = [headers, ...rows].map((row) => row.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const csv = [headers, ...rows].map((row) => row.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `trades-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `trades-${new Date().toISOString().split("T")[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -144,17 +230,21 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
           <Table className="w-6 h-6 text-white" />
           <h1 className="text-2xl font-bold text-white">All Trades</h1>
         </div>
-        <p className="text-gray-400 text-lg">Complete trade history and management</p>
+        <p className="text-gray-400 text-lg">
+          Complete trade history and management
+        </p>
         <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-500 bg-slate-800/50 px-4 py-2 rounded-lg inline-flex">
           <Table className="w-4 h-4" />
-          <span>{trades.length} trade{trades.length !== 1 ? 's' : ''} recorded</span>
+          <span>
+            {trades.length} trade{trades.length !== 1 ? "s" : ""} recorded
+          </span>
         </div>
       </div>
 
       {/* Filters and Controls */}
       <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
-          onClick={() => toggleSection('filters')}
+          onClick={() => toggleSection("filters")}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700/50 transition-all duration-200"
         >
           <div className="flex items-center gap-3">
@@ -175,10 +265,12 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
             <div className="bg-gradient-to-br from-slate-700 to-slate-600 p-6 rounded-lg space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div className="bg-slate-800 p-3 rounded-lg">
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">Result</label>
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">
+                    Result
+                  </label>
                   <select
-                    value={filters.result}
-                    onChange={(e) => setFilters({ ...filters, result: e.target.value })}
+                    value={resultFilter}
+                    onChange={(e) => setResultFilter(e.target.value)}
                     className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm"
                   >
                     <option value="">All Results</option>
@@ -189,10 +281,12 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
                 </div>
 
                 <div className="bg-slate-800 p-3 rounded-lg">
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">Session</label>
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">
+                    Session
+                  </label>
                   <select
-                    value={filters.session}
-                    onChange={(e) => setFilters({ ...filters, session: e.target.value })}
+                    value={sessionFilter}
+                    onChange={(e) => setSessionFilter(e.target.value)}
                     className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm"
                   >
                     <option value="">All Sessions</option>
@@ -203,10 +297,18 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
                 </div>
 
                 <div className="bg-slate-800 p-3 rounded-lg">
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">Direction</label>
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">
+                    Direction
+                  </label>
                   <select
-                    value={filters.direction}
-                    onChange={(e) => setFilters({ ...filters, direction: e.target.value })}
+                    value={directionFilter}
+                    onChange={(e) => {
+                      console.log(
+                        "Direction filter changed to:",
+                        e.target.value
+                      );
+                      setDirectionFilter(e.target.value);
+                    }}
                     className="w-full px-3 py-2 bg-slate-600 border border-slate-500 rounded-lg text-white focus:outline-none focus:border-blue-500 text-sm"
                   >
                     <option value="">All Directions</option>
@@ -216,7 +318,9 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
                 </div>
 
                 <div className="bg-slate-800 p-3 rounded-lg">
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">Sort By</label>
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">
+                    Sort By
+                  </label>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as any)}
@@ -229,7 +333,9 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
                 </div>
 
                 <div className="bg-slate-800 p-3 rounded-lg">
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">Export</label>
+                  <label className="block text-sm font-semibold text-gray-300 mb-2">
+                    Export
+                  </label>
                   <button
                     onClick={handleExportCSV}
                     className="w-full px-4 py-2 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold rounded-lg transition-all duration-200 transform hover:scale-105 text-sm"
@@ -246,7 +352,7 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
       {/* Trades Table */}
       <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">
         <button
-          onClick={() => toggleSection('trades')}
+          onClick={() => toggleSection("trades")}
           className="w-full flex items-center justify-between p-6 hover:bg-slate-700/50 transition-all duration-200"
         >
           <div className="flex items-center gap-3">
@@ -256,7 +362,7 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
             <h2 className="text-xl font-bold text-white">Trade History</h2>
           </div>
           <div className="text-sm text-gray-400">
-            {trades.length} trade{trades.length !== 1 ? 's' : ''} displayed
+            {trades.length} trade{trades.length !== 1 ? "s" : ""} displayed
           </div>
         </button>
 
@@ -266,15 +372,33 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
               <table className="w-full">
                 <thead className="bg-gradient-to-r from-slate-700 to-slate-600">
                   <tr>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-white">📅 Date/Time</th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-white">🌍 Session</th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-white">📈 Direction</th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-white">🎯 Entry Type</th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-white">💰 Entry / Exit</th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-white">⚖️ R:R</th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-white">📊 Result</th>
-                    <th className="px-6 py-4 text-left text-sm font-bold text-white">💵 P/L</th>
-                    <th className="px-6 py-4 text-center text-sm font-bold text-white">⚙️ Actions</th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-white">
+                      📅 Date/Time
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-white">
+                      🌍 Session
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-white">
+                      📈 Direction
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-white">
+                      🎯 Entry Type
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-white">
+                      💰 Entry / Exit
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-white">
+                      ⚖️ R:R
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-white">
+                      📊 Result
+                    </th>
+                    <th className="px-6 py-4 text-left text-sm font-bold text-white">
+                      💵 P/L
+                    </th>
+                    <th className="px-6 py-4 text-center text-sm font-bold text-white">
+                      ⚙️ Actions
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-700">
@@ -284,16 +408,25 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
                         <div className="text-gray-400">
                           <Search className="w-12 h-12 mx-auto mb-4 opacity-50" />
                           <p className="text-lg mb-2">No trades found</p>
-                          <p className="text-sm">Try adjusting your filters or add your first trade</p>
+                          <p className="text-sm">
+                            Try adjusting your filters or add your first trade
+                          </p>
                         </div>
                       </td>
                     </tr>
                   ) : (
                     trades.map((trade, index) => (
-                      <tr key={trade.id} className="hover:bg-slate-700/50 transition-all duration-200">
+                      <tr
+                        key={trade.id}
+                        className="hover:bg-slate-700/50 transition-all duration-200"
+                      >
                         <td className="px-6 py-4">
-                          <div className="text-white font-medium">{trade.trade_date}</div>
-                          <div className="text-gray-400 text-sm">{trade.trade_time}</div>
+                          <div className="text-white font-medium">
+                            {trade.trade_date}
+                          </div>
+                          <div className="text-gray-400 text-sm">
+                            {trade.trade_time}
+                          </div>
                         </td>
                         <td className="px-6 py-4">
                           <span className="bg-slate-600 text-white px-3 py-1 rounded-full text-sm font-medium">
@@ -301,14 +434,21 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`font-bold text-lg ${
-                            trade.direction === 'Long' ? 'text-green-400' : 'text-red-400'
-                          }`}>
-                            {trade.direction === 'Long' ? '📈' : '📉'} {trade.direction}
+                          <span
+                            className={`font-bold text-lg ${
+                              trade.direction === "Long"
+                                ? "text-green-400"
+                                : "text-red-400"
+                            }`}
+                          >
+                            {trade.direction === "Long" ? "📈" : "📉"}{" "}
+                            {trade.direction}
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <span className="text-white">{trade.m1_entry_type || '—'}</span>
+                          <span className="text-white">
+                            {trade.m1_entry_type || "—"}
+                          </span>
                         </td>
                         <td className="px-6 py-4">
                           <div className="text-white font-mono">
@@ -322,32 +462,44 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
                         </td>
                         <td className="px-6 py-4">
                           <span className="bg-purple-900 text-purple-100 px-3 py-1 rounded-full text-sm font-bold">
-                            {trade.risk_reward_ratio ? `1:${trade.risk_reward_ratio}` : '—'}
+                            {trade.risk_reward_ratio
+                              ? `1:${trade.risk_reward_ratio}`
+                              : "—"}
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`px-3 py-1 rounded-full text-sm font-bold ${
-                            trade.trade_result === 'Win'
-                              ? 'bg-green-900 text-green-100'
-                              : trade.trade_result === 'Loss'
-                                ? 'bg-red-900 text-red-100'
-                                : 'bg-yellow-900 text-yellow-100'
-                          }`}>
-                            {trade.trade_result === 'Win' && '✅ '}
-                            {trade.trade_result === 'Loss' && '❌ '}
-                            {trade.trade_result === 'Break Even' && '⚪ '}
-                            {trade.trade_result || '—'}
+                          <span
+                            className={`px-3 py-1 rounded-full text-sm font-bold ${
+                              trade.trade_result === "Win"
+                                ? "bg-green-900 text-green-100"
+                                : trade.trade_result === "Loss"
+                                ? "bg-red-900 text-red-100"
+                                : "bg-yellow-900 text-yellow-100"
+                            }`}
+                          >
+                            {trade.trade_result === "Win" && "✅ "}
+                            {trade.trade_result === "Loss" && "❌ "}
+                            {trade.trade_result === "Break Even" && "⚪ "}
+                            {trade.trade_result || "—"}
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <div className={`font-bold text-lg ${
-                            trade.pl_dollar && trade.pl_dollar >= 0 ? 'text-green-400' : 'text-red-400'
-                          }`}>
-                            ${trade.pl_dollar ? trade.pl_dollar.toFixed(2) : '0.00'}
+                          <div
+                            className={`font-bold text-lg ${
+                              trade.pl_dollar && trade.pl_dollar >= 0
+                                ? "text-green-400"
+                                : "text-red-400"
+                            }`}
+                          >
+                            $
+                            {trade.pl_dollar
+                              ? trade.pl_dollar.toFixed(2)
+                              : "0.00"}
                           </div>
                           {trade.pl_percent && (
                             <div className="text-gray-400 text-sm">
-                              {trade.pl_percent >= 0 ? '+' : ''}{trade.pl_percent.toFixed(2)}%
+                              {trade.pl_percent >= 0 ? "+" : ""}
+                              {trade.pl_percent.toFixed(2)}%
                             </div>
                           )}
                         </td>
@@ -388,23 +540,34 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({ onEditTrade, onVie
 
       {/* Trade Management Tips */}
       <div className="bg-gradient-to-r from-blue-900 to-purple-900 border border-blue-700 rounded-lg p-6">
-        <h3 className="text-blue-200 font-bold text-lg mb-3">💡 Trade Management Tips</h3>
+        <h3 className="text-blue-200 font-bold text-lg mb-3">
+          💡 Trade Management Tips
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-blue-100">
           <div className="bg-blue-800/50 p-3 rounded-lg">
             <div className="font-semibold mb-1">Regular Review</div>
-            <div className="text-sm">Review your trades weekly to identify patterns and improvements</div>
+            <div className="text-sm">
+              Review your trades weekly to identify patterns and improvements
+            </div>
           </div>
           <div className="bg-blue-800/50 p-3 rounded-lg">
             <div className="font-semibold mb-1">Data Export</div>
-            <div className="text-sm">Export your data regularly for backup and external analysis</div>
+            <div className="text-sm">
+              Export your data regularly for backup and external analysis
+            </div>
           </div>
           <div className="bg-blue-800/50 p-3 rounded-lg">
             <div className="font-semibold mb-1">Filter Analysis</div>
-            <div className="text-sm">Use filters to analyze performance by session, direction, or result</div>
+            <div className="text-sm">
+              Use filters to analyze performance by session, direction, or
+              result
+            </div>
           </div>
           <div className="bg-blue-800/50 p-3 rounded-lg">
             <div className="font-semibold mb-1">Risk Assessment</div>
-            <div className="text-sm">Monitor your R:R ratios and ensure consistent risk management</div>
+            <div className="text-sm">
+              Monitor your R:R ratios and ensure consistent risk management
+            </div>
           </div>
         </div>
       </div>
