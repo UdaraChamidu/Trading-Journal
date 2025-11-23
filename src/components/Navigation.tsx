@@ -1,8 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import { useAuth } from "../contexts/AuthContext";
 import {
-  Menu,
-  X,
   LogOut,
   Settings,
   TrendingUp,
@@ -14,15 +12,11 @@ import {
   Target,
   BookOpen,
   Trophy,
-  User,
   FileText,
   Wallet,
-  Coins,
-  Zap,
   DollarSign,
   Bell,
   Newspaper,
-  TrendingDown,
   Activity,
 } from "lucide-react";
 
@@ -35,7 +29,6 @@ export const Navigation: React.FC<NavigationProps> = ({
   currentPage,
   onPageChange,
 }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { signOut } = useAuth();
 
   const navItems = [
@@ -119,14 +112,11 @@ export const Navigation: React.FC<NavigationProps> = ({
       {/* Top Bar */}
       <nav className="bg-gradient-to-r from-slate-800 to-slate-900 border-b border-slate-700 sticky top-0 z-50 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
-              <button
-                className="p-2 text-gray-300 hover:bg-slate-700 rounded-lg transition-all duration-200"
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              >
-                <Menu className="w-5 h-5" />
-              </button>
+          {/* Flex container justified to end to push everything to the right */}
+          <div className="flex justify-end items-center h-16">
+            
+            <div className="flex items-center gap-6">
+              {/* Logo & Title */}
               <div
                 className="flex items-center gap-3 cursor-pointer group"
                 onClick={() => onPageChange("dashboard")}
@@ -138,9 +128,8 @@ export const Navigation: React.FC<NavigationProps> = ({
                   Crypto Trading Hub
                 </span>
               </div>
-            </div>
 
-            <div className="flex items-center gap-3">
+              {/* Settings Button */}
               <button
                 onClick={() => onPageChange("settings")}
                 className={`p-2 rounded-lg transition-all duration-200 transform hover:scale-110 ${
@@ -152,6 +141,7 @@ export const Navigation: React.FC<NavigationProps> = ({
                 <Settings className="w-5 h-5" />
               </button>
 
+              {/* Logout Button */}
               <button
                 onClick={handleSignOut}
                 className="p-2 text-gray-300 hover:bg-red-600 hover:text-white rounded-lg transition-all duration-200 transform hover:scale-110"
@@ -164,22 +154,10 @@ export const Navigation: React.FC<NavigationProps> = ({
         </div>
       </nav>
 
-      {/* Sidebar */}
+      {/* Sidebar - Always visible, fixed position */}
       <div
-        className={`fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-slate-800 to-slate-900 border-r border-slate-700 transform ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 ease-in-out`}
+        className="fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-slate-800 to-slate-900 border-r border-slate-700 pt-16"
       >
-        <div className="flex items-center justify-between p-4 border-b border-slate-700">
-          <h2 className="text-white font-bold text-lg">Navigation</h2>
-          <button
-            onClick={() => setIsSidebarOpen(false)}
-            className="p-2 text-gray-300 hover:bg-slate-700 rounded-lg transition-all duration-200"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
         <div className="py-4">
           {navItems.map((item) => {
             const IconComponent = item.icon;
@@ -188,7 +166,6 @@ export const Navigation: React.FC<NavigationProps> = ({
                 key={item.id}
                 onClick={() => {
                   onPageChange(item.id);
-                  setIsSidebarOpen(false);
                 }}
                 className={`flex items-center w-full text-left px-6 py-3 transition-all duration-200 hover:bg-slate-700 ${
                   currentPage === item.id
@@ -203,14 +180,6 @@ export const Navigation: React.FC<NavigationProps> = ({
           })}
         </div>
       </div>
-
-      {/* Overlay */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black bg-opacity-50 lg:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
     </>
   );
 };
