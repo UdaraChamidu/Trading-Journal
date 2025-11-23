@@ -264,9 +264,42 @@ CREATE POLICY "Users can update own trading plan"
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
 
+CREATE TABLE IF NOT EXISTS posts (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  title text NOT NULL,
+  content text NOT NULL,
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
+ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own posts"
+  ON posts FOR SELECT
+  TO authenticated
+  USING (auth.uid() = user_id);
+
+CREATE POLICY "Users can manage own posts"
+  ON posts FOR INSERT
+  TO authenticated
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can update own posts"
+  ON posts FOR UPDATE
+  TO authenticated
+  USING (auth.uid() = user_id)
+  WITH CHECK (auth.uid() = user_id);
+
+CREATE POLICY "Users can delete own posts"
+  ON posts FOR DELETE
+  TO authenticated
+  USING (auth.uid() = user_id);
+
 CREATE INDEX idx_trades_user_date ON trades(user_id, trade_date DESC);
 CREATE INDEX idx_trades_user_result ON trades(user_id, trade_result);
 CREATE INDEX idx_trades_user_session ON trades(user_id, session);
 CREATE INDEX idx_weekly_reviews_user_date ON weekly_reviews(user_id, week_start_date DESC);
 CREATE INDEX idx_goals_user_month ON goals(user_id, month DESC);
 CREATE INDEX idx_notes_user_date ON general_notes(user_id, note_date DESC);
+CREATE INDEX idx_posts_user_created ON posts(user_id, created_at DESC);

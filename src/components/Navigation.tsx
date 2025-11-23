@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Menu, X, LogOut, Settings, TrendingUp, BarChart3, Plus, List, PieChart, Calendar, Target, BookOpen, Trophy, User } from 'lucide-react';
+import { Menu, X, LogOut, Settings, TrendingUp, BarChart3, Plus, List, PieChart, Calendar, Target, BookOpen, Trophy, User, FileText } from 'lucide-react';
 
 interface NavigationProps {
   currentPage: string;
@@ -19,6 +19,7 @@ export const Navigation: React.FC<NavigationProps> = ({ currentPage, onPageChang
     { id: 'weekly-review', label: 'Weekly Review', icon: Calendar, color: 'text-indigo-400' },
     { id: 'trading-plan', label: 'Trading Plan', icon: Target, color: 'text-red-400' },
     { id: 'journal', label: 'Journal', icon: BookOpen, color: 'text-cyan-400' },
+    { id: 'posts', label: 'Posts', icon: FileText, color: 'text-pink-400' },
     { id: 'goals', label: 'Goals', icon: Trophy, color: 'text-yellow-400' },
   ];
 

@@ -17,6 +17,7 @@ const TradingPlanPage = lazy(() => import('./pages/TradingPlanPage').then(module
 const JournalPage = lazy(() => import('./pages/JournalPage').then(module => ({ default: module.JournalPage })));
 const GoalsPage = lazy(() => import('./pages/GoalsPage').then(module => ({ default: module.GoalsPage })));
 const SettingsPage = lazy(() => import('./pages/SettingsPage').then(module => ({ default: module.SettingsPage })));
+const PostsPage = lazy(() => import('./pages/PostsPage').then(module => ({ default: module.PostsPage })));
 
 const AppContent: React.FC = () => {
   const { session, loading, userProfile } = useAuth();
@@ -80,6 +81,8 @@ const AppContent: React.FC = () => {
         return <JournalPage />;
       case 'goals':
         return <GoalsPage />;
+      case 'posts':
+        return <PostsPage />;
       case 'settings':
         return <SettingsPage />;
       default:
