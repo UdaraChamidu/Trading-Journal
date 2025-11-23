@@ -429,3 +429,5 @@ Write your post content here using **Markdown** formatting:
     </div>
   );
 };
+
+export default PostsPage;

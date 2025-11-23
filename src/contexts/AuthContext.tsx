@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Session } from '@supabase/supabase-js';
+import { Session, AuthChangeEvent } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 import { UserProfile } from '../types';
 
@@ -79,11 +79,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
 
       // 3. Listen for changes
-      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, currentSession: Session | null) => {
         if (mounted) {
           setSession(currentSession);
           
-          if (currentSession) {
+          if (currentSession?.user) {
             // Only fetch profile if we don't have it or if the user changed
             // This prevents double-fetching on refresh
             if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {

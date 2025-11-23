@@ -422,3 +422,6 @@ export const GoalsPage: React.FC = () => {
     </div>
   );
 };
+
+
+export default GoalsPage;
