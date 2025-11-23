@@ -252,3 +252,6 @@ export const JournalPage: React.FC = () => {
     </div>
   );
 };
+
+
+export default JournalPage;

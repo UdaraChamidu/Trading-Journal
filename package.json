@@ -13,11 +13,13 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.57.4",
     "@tailwindcss/typography": "^0.5.19",
+    "axios": "^1.13.2",
     "caniuse-lite": "^1.0.30001756",
     "lucide-react": "^0.344.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-markdown": "^10.1.0",
+    "recharts": "^3.5.0",
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {

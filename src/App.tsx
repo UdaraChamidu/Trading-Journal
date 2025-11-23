@@ -9,15 +9,20 @@ import { Trade } from './types';
 import './index.css';
 
 // Lazy load page components
-const DashboardPage = lazy(() => import('./pages/DashboardPage').then(module => ({ default: module.DashboardPage })));
-const AllTradesPage = lazy(() => import('./pages/AllTradesPage').then(module => ({ default: module.AllTradesPage })));
-const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage').then(module => ({ default: module.AnalyticsPage })));
-const WeeklyReviewPage = lazy(() => import('./pages/WeeklyReviewPage').then(module => ({ default: module.WeeklyReviewPage })));
-const TradingPlanPage = lazy(() => import('./pages/TradingPlanPage').then(module => ({ default: module.TradingPlanPage })));
-const JournalPage = lazy(() => import('./pages/JournalPage').then(module => ({ default: module.JournalPage })));
-const GoalsPage = lazy(() => import('./pages/GoalsPage').then(module => ({ default: module.GoalsPage })));
-const SettingsPage = lazy(() => import('./pages/SettingsPage').then(module => ({ default: module.SettingsPage })));
-const PostsPage = lazy(() => import('./pages/PostsPage').then(module => ({ default: module.PostsPage })));
+const DashboardPage = lazy(() => import('./pages/DashboardPage'));
+const CryptoPricesPage = lazy(() => import('./pages/CryptoPricesPage'));
+const PortfolioPage = lazy(() => import('./pages/PortfolioPage'));
+const CryptoNewsPage = lazy(() => import('./pages/CryptoNewsPage'));
+const PriceAlertsPage = lazy(() => import('./pages/PriceAlertsPage'));
+const MarketInsightsPage = lazy(() => import('./pages/MarketInsightsPage'));
+const AllTradesPage = lazy(() => import('./pages/AllTradesPage'));
+const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'));
+const WeeklyReviewPage = lazy(() => import('./pages/WeeklyReviewPage'));
+const TradingPlanPage = lazy(() => import('./pages/TradingPlanPage'));
+const JournalPage = lazy(() => import('./pages/JournalPage'));
+const GoalsPage = lazy(() => import('./pages/GoalsPage'));
+const SettingsPage = lazy(() => import('./pages/SettingsPage'));
+const PostsPage = lazy(() => import('./pages/PostsPage'));
 
 const AppContent: React.FC = () => {
   const { session, loading, userProfile } = useAuth();
@@ -50,6 +55,16 @@ const AppContent: React.FC = () => {
     switch (currentPage) {
       case 'dashboard':
         return <DashboardPage />;
+      case 'crypto-prices':
+        return <CryptoPricesPage />;
+      case 'portfolio':
+        return <PortfolioPage />;
+      case 'crypto-news':
+        return <CryptoNewsPage />;
+      case 'price-alerts':
+        return <PriceAlertsPage />;
+      case 'market-insights':
+        return <MarketInsightsPage />;
       case 'trade-entry':
         return editingTrade ? (
           <TradeEntryForm
@@ -97,12 +112,15 @@ const AppContent: React.FC = () => {
         setEditingTrade(null);
       }} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="ml-64 max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
         <Suspense fallback={
           <div className={`flex items-center justify-center min-h-screen ${
             isDarkMode ? 'text-gray-400' : 'text-gray-600'
           }`}>
-            Loading...
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
+              <div>Loading...</div>
+            </div>
           </div>
         }>
           {renderPage()}

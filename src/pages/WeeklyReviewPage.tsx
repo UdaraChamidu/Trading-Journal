@@ -3,6 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../lib/supabase';
 import { calculateWinRate, calculateProfitFactor } from '../lib/calculations';
+import { Trade } from '../types';
 import { ChevronDown, ChevronUp, BarChart3, CheckCircle, TrendingUp, BookOpen, Target, Calendar } from 'lucide-react';
 
 export const WeeklyReviewPage: React.FC = () => {
@@ -57,30 +58,30 @@ export const WeeklyReviewPage: React.FC = () => {
           .gte('trade_date', weekStart)
           .lte('trade_date', weekEnd);
 
-        const completed = (weekTrades || []).filter((t) => t.pl_dollar !== null);
-        const wins = completed.filter((t) => t.trade_result === 'Win').length;
-        const losses = completed.filter((t) => t.trade_result === 'Loss').length;
+        const completed = (weekTrades || []).filter((t: Trade) => t.pl_dollar !== null);
+        const wins = completed.filter((t: Trade) => t.trade_result === 'Win').length;
+        const losses = completed.filter((t: Trade) => t.trade_result === 'Loss').length;
 
         const avgRR =
           completed.length > 0
-            ? completed.reduce((sum, t) => sum + (t.risk_reward_ratio || 0), 0) / completed.length
+            ? completed.reduce((sum: number, t: Trade) => sum + (t.risk_reward_ratio || 0), 0) / completed.length
             : 0;
 
         const totalWins = completed
-          .filter((t) => t.trade_result === 'Win')
-          .reduce((sum, t) => sum + (t.pl_dollar || 0), 0);
+          .filter((t: Trade) => t.trade_result === 'Win')
+          .reduce((sum: number, t: Trade) => sum + (t.pl_dollar || 0), 0);
         const totalLosses = Math.abs(
           completed
-            .filter((t) => t.trade_result === 'Loss')
-            .reduce((sum, t) => sum + (t.pl_dollar || 0), 0)
+            .filter((t: Trade) => t.trade_result === 'Loss')
+            .reduce((sum: number, t: Trade) => sum + (t.pl_dollar || 0), 0)
         );
 
         const entryTypes: Record<string, number> = {};
         const sessions: Record<string, number> = {};
 
-        completed.forEach((t) => {
-          if (t.m1_entry_type) entryTypes[t.m1_entry_type] = (entryTypes[t.m1_entry_type] || 0) + t.pl_dollar;
-          if (t.session) sessions[t.session] = (sessions[t.session] || 0) + t.pl_dollar;
+        completed.forEach((t: Trade) => {
+          if (t.m1_entry_type) entryTypes[t.m1_entry_type] = (entryTypes[t.m1_entry_type] || 0) + (t.pl_dollar || 0);
+          if (t.session) sessions[t.session] = (sessions[t.session] || 0) + (t.pl_dollar || 0);
         });
 
         const bestEntryType = Object.entries(entryTypes).sort((a, b) => b[1] - a[1])[0]?.[0];
@@ -94,8 +95,8 @@ export const WeeklyReviewPage: React.FC = () => {
           win_rate: calculateWinRate(wins, completed.length),
           average_rr: parseFloat(avgRR.toFixed(3)),
           profit_factor: calculateProfitFactor(totalWins, totalLosses),
-          best_trade_rr: Math.max(...completed.map((t) => t.risk_reward_ratio || 0), 0),
-          worst_trade_rr: Math.min(...completed.map((t) => t.risk_reward_ratio || 0), 0),
+          best_trade_rr: Math.max(...completed.map((t: Trade) => t.risk_reward_ratio || 0), 0),
+          worst_trade_rr: Math.min(...completed.map((t: Trade) => t.risk_reward_ratio || 0), 0),
           best_session: bestSession || '',
           best_entry_type: bestEntryType || '',
           insights: existingReview?.insights || '',
@@ -361,3 +362,6 @@ export const WeeklyReviewPage: React.FC = () => {
     </div>
   );
 };
+
+
+export default WeeklyReviewPage;

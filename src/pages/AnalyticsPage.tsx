@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { StatCard } from '../components/StatCard';
+import { Trade } from '../types';
 import { BarChart3, TrendingUp, Calendar, Target, ChevronDown, ChevronUp, PieChart, Activity } from 'lucide-react';
 
 export const AnalyticsPage: React.FC = () => {
@@ -32,13 +33,13 @@ export const AnalyticsPage: React.FC = () => {
           .eq('user_id', session.user.id);
 
         if (trades) {
-          const completed = trades.filter((t) => t.pl_dollar !== null);
+          const completed = trades.filter((t: Trade) => t.pl_dollar !== null);
 
           const bySession: Record<string, any> = {};
           const byEntryType: Record<string, any> = {};
           const byDayOfWeek: Record<string, any> = {};
 
-          completed.forEach((trade) => {
+          completed.forEach((trade: Trade) => {
             if (trade.session) {
               if (!bySession[trade.session]) {
                 bySession[trade.session] = { wins: 0, losses: 0, pl: 0, trades: 0 };
@@ -380,3 +381,6 @@ export const AnalyticsPage: React.FC = () => {
     </div>
   );
 };
+
+
+export default AnalyticsPage;

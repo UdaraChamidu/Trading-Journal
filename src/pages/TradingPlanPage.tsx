@@ -700,3 +700,6 @@ export const TradingPlanPage: React.FC = () => {
     </div>
   );
 };
+
+
+export default TradingPlanPage;

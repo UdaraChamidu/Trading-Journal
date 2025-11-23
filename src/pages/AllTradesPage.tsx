@@ -574,3 +574,6 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({
     </div>
   );
 };
+
+
+export default AllTradesPage;
