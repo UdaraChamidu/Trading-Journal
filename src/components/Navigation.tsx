@@ -109,14 +109,12 @@ export const Navigation: React.FC<NavigationProps> = ({
 
   return (
     <>
-      {/* Top Bar */}
-      <nav className="bg-gradient-to-r from-slate-800 to-slate-900 border-b border-slate-700 sticky top-0 z-50 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Flex container justified to end to push everything to the right */}
-          <div className="flex justify-end items-center h-16">
-            
+      {/* Top Bar - Changed to FIXED to prevent layout shifts */}
+      <nav className="fixed top-0 left-0 right-0 h-16 bg-gradient-to-r from-slate-800 to-slate-900 border-b border-slate-700 z-50 shadow-lg">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
+          <div className="flex justify-end items-center h-full">
             <div className="flex items-center gap-6">
-              {/* Logo & Title */}
+              {/* Logo & Title - Right Aligned */}
               <div
                 className="flex items-center gap-3 cursor-pointer group"
                 onClick={() => onPageChange("dashboard")}
@@ -154,11 +152,9 @@ export const Navigation: React.FC<NavigationProps> = ({
         </div>
       </nav>
 
-      {/* Sidebar - Always visible, fixed position */}
-      <div
-        className="fixed inset-y-0 left-0 z-40 w-64 bg-gradient-to-b from-slate-800 to-slate-900 border-r border-slate-700 pt-16"
-      >
-        <div className="py-4">
+      {/* Sidebar - Fixed position, starts below header (top-16) */}
+      <div className="fixed left-0 top-16 bottom-0 z-40 w-64 bg-gradient-to-b from-slate-800 to-slate-900 border-r border-slate-700 overflow-y-auto">
+        <div className="py-4 pb-20">
           {navItems.map((item) => {
             const IconComponent = item.icon;
             return (
