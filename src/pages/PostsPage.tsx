@@ -3,6 +3,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../lib/supabase';
 import { Trash2, FileText, Plus, Calendar, MessageSquare, Edit2, Save, X, ArrowLeft, Eye } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Post } from '../types';
 
 export const PostsPage: React.FC = () => {
@@ -202,9 +204,15 @@ export const PostsPage: React.FC = () => {
           <div className="text-center">
             <h1 className="text-4xl font-bold text-white mb-2">My Posts</h1>
             <p className="text-gray-400 text-lg">Share your thoughts, ideas, and insights</p>
-            <div className="mt-4 flex items-center justify-center gap-2 text-sm text-gray-500">
-              <FileText className="w-4 h-4" />
-              <span>Document your journey</span>
+            <div className="mt-4 flex items-center justify-center gap-4 text-sm text-gray-500">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4" />
+                <span>Document your journey</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-blue-400">📝</span>
+                <span>Markdown supported</span>
+              </div>
             </div>
           </div>
 
@@ -227,13 +235,27 @@ export const PostsPage: React.FC = () => {
                   />
                 </div>
                 <div className="mb-4">
-                  <label className="block text-lg font-semibold text-white mb-3">Post Content</label>
+                  <label className="block text-lg font-semibold text-white mb-3">
+                    Post Content
+                    <span className="text-sm text-gray-400 ml-2">(Markdown supported)</span>
+                  </label>
                   <textarea
                     value={newContent}
                     onChange={(e) => setNewContent(e.target.value)}
-                    placeholder="Share your thoughts, ideas, or insights..."
-                    rows={6}
-                    className="w-full px-4 py-3 bg-slate-600 border border-slate-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 resize-none"
+                    placeholder="# Your Title
+
+Write your post content here using **Markdown** formatting:
+
+- Bullet points
+- *Italic* and **bold** text
+- `code snippets`
+- [Links](https://example.com)
+
+## Subheadings
+
+> Blockquotes for important notes"
+                    rows={8}
+                    className="w-full px-4 py-3 bg-slate-600 border border-slate-500 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500 resize-none font-mono text-sm"
                   />
                 </div>
 
@@ -388,12 +410,14 @@ export const PostsPage: React.FC = () => {
                       value={editContent}
                       onChange={(e) => setEditContent(e.target.value)}
                       rows={12}
-                      className="w-full bg-slate-600 border border-slate-500 rounded px-4 py-3 text-gray-200 resize-none text-lg leading-relaxed"
-                      placeholder="Post content..."
+                      className="w-full bg-slate-600 border border-slate-500 rounded px-4 py-3 text-gray-200 resize-none font-mono text-sm"
+                      placeholder="Write your post in Markdown format..."
                     />
                   ) : (
-                    <div className="text-gray-200 text-lg leading-relaxed whitespace-pre-wrap">
-                      {selectedPost.content}
+                    <div className="prose prose-invert prose-slate max-w-none">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {selectedPost.content}
+                      </ReactMarkdown>
                     </div>
                   )}
                 </div>
