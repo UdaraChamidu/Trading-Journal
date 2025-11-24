@@ -1,6 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Bot, Send, User, Sparkles, BrainCircuit, TrendingUp } from 'lucide-react';
+import { Bot, Send, User, Sparkles, BrainCircuit, TrendingUp, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { getGeminiService } from '../lib/gemini';
+import { supabase } from '../lib/supabase';
+import { calculateWinRate, calculateProfitFactor } from '../lib/calculations';
+import { Trade } from '../types';
 
 interface Message {
   id: string;
@@ -10,18 +14,21 @@ interface Message {
 }
 
 export const AICoachPage: React.FC = () => {
-  const { } = useAuth();
+  const { session } = useAuth();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       role: 'assistant',
-      content: "Hello! I'm your AI Trading Coach. I can analyze your trading performance, suggest improvements, or discuss market psychology. How can I help you today?",
+      content: "Hello! I'm your AI Trading Coach powered by Gemini. I can analyze your trading performance, suggest improvements, or discuss market psychology. How can I help you today?",
       timestamp: new Date(),
     },
   ]);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [tradingContext, setTradingContext] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const geminiService = useRef<any>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -31,8 +38,50 @@ export const AICoachPage: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Initialize Gemini service and fetch trading context
+  useEffect(() => {
+    const initializeAI = async () => {
+      try {
+        geminiService.current = getGeminiService();
+        
+        // Fetch user's trading stats for context
+        if (session) {
+          const { data: trades } = await supabase
+            .from('trades')
+            .select('*')
+            .eq('user_id', session.user.id);
+
+          if (trades && trades.length > 0) {
+            const completed = trades.filter((t: Trade) => t.pl_dollar !== null);
+            const wins = completed.filter((t: Trade) => t.trade_result === 'Win').length;
+            
+            const totalWins = completed
+              .filter((t: Trade) => t.trade_result === 'Win')
+              .reduce((sum: number, t: Trade) => sum + (t.pl_dollar || 0), 0);
+            const totalLosses = Math.abs(
+              completed
+                .filter((t: Trade) => t.trade_result === 'Loss')
+                .reduce((sum: number, t: Trade) => sum + (t.pl_dollar || 0), 0)
+            );
+
+            setTradingContext({
+              totalTrades: trades.length,
+              winRate: calculateWinRate(wins, completed.length),
+              profitFactor: calculateProfitFactor(totalWins, totalLosses),
+            });
+          }
+        }
+      } catch (err: any) {
+        console.error('Error initializing AI:', err);
+        setError(err.message || 'Failed to initialize AI. Please check your API key.');
+      }
+    };
+
+    initializeAI();
+  }, [session]);
+
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || isTyping) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -44,36 +93,35 @@ export const AICoachPage: React.FC = () => {
     setMessages((prev) => [...prev, userMessage]);
     setInput('');
     setIsTyping(true);
+    setError(null);
 
-    // Simulate AI processing
-    setTimeout(() => {
-      const aiResponse = generateMockResponse(input);
+    try {
+      // Send message to Gemini API
+      const response = await geminiService.current.sendMessage(input, tradingContext);
+      
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: aiResponse,
+        content: response,
         timestamp: new Date(),
       };
+      
       setMessages((prev) => [...prev, aiMessage]);
+    } catch (err: any) {
+      console.error('Error getting AI response:', err);
+      setError(err.message || 'Failed to get response. Please try again.');
+      
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: "I apologize, but I'm having trouble connecting right now. Please check your API key configuration and try again.",
+        timestamp: new Date(),
+      };
+      
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
-  };
-
-  const generateMockResponse = (query: string): string => {
-    const q = query.toLowerCase();
-    if (q.includes('win rate') || q.includes('performance')) {
-      return "Based on your recent trades, your win rate is currently 65%, which is excellent! However, I noticed your average loss is slightly higher than your average win. Focusing on cutting losses earlier could significantly boost your profitability.";
     }
-    if (q.includes('risk') || q.includes('position')) {
-      return "Risk management is key. I recommend sticking to a 1-2% risk per trade. Given your account balance, that means risking no more than $100-$200 per trade. Would you like me to calculate a position size for you?";
-    }
-    if (q.includes('psychology') || q.includes('emotion')) {
-      return "Trading psychology is often the edge. If you're feeling anxious, try reducing your position size. Remember, the goal is to execute your plan flawlessly, not just to make money on every single trade.";
-    }
-    if (q.includes('bitcoin') || q.includes('btc')) {
-      return "Bitcoin has been showing strong momentum recently. Remember to wait for confirmation on the 4H timeframe before entering. Don't FOMO into green candles!";
-    }
-    return "That's an interesting point. As your AI coach, I'd suggest reviewing your trading journal for similar setups in the past. History often rhymes in the markets. What specific pattern are you looking at?";
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -92,6 +140,17 @@ export const AICoachPage: React.FC = () => {
         </div>
         <p className="text-gray-400">Your personal assistant for market analysis and performance review</p>
       </div>
+
+      {/* Error Banner */}
+      {error && (
+        <div className="mb-6 bg-red-900/20 border border-red-800 rounded-lg p-4 flex items-start gap-3">
+          <AlertCircle className="w-6 h-6 text-red-400 flex-shrink-0 mt-1" />
+          <div>
+            <h3 className="text-red-400 font-bold mb-1">Connection Error</h3>
+            <p className="text-red-200/80 text-sm">{error}</p>
+          </div>
+        </div>
+      )}
 
       <div className="flex-1 bg-slate-800 border border-slate-700 rounded-xl overflow-hidden flex flex-col shadow-2xl">
         {/* Chat Area */}
