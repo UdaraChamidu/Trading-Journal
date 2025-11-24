@@ -23,6 +23,12 @@ const JournalPage = lazy(() => import('./pages/JournalPage'));
 const GoalsPage = lazy(() => import('./pages/GoalsPage'));
 const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const PostsPage = lazy(() => import('./pages/PostsPage'));
+const CalculatorPage = lazy(() => import('./pages/CalculatorPage'));
+const EconomicCalendarPage = lazy(() => import('./pages/EconomicCalendarPage'));
+const AICoachPage = lazy(() => import('./pages/AICoachPage'));
+const SocialHubPage = lazy(() => import('./pages/SocialHubPage'));
+const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'));
+const ExchangeSyncPage = lazy(() => import('./pages/ExchangeSyncPage'));
 
 const AppContent: React.FC = () => {
 
@@ -160,23 +166,35 @@ const AppContent: React.FC = () => {
         return <JournalPage />;
 
       case 'goals':
-
         return <GoalsPage />;
 
       case 'posts':
-
         return <PostsPage />;
-
+      
       case 'settings':
-
         return <SettingsPage />;
 
+      case 'calculator':
+        return <CalculatorPage />;
+
+      case 'calendar':
+        return <EconomicCalendarPage />;
+
+      case 'ai-coach':
+        return <AICoachPage />;
+
+      case 'social-hub':
+        return <SocialHubPage />;
+
+      case 'profile':
+        return <PublicProfilePage />;
+
+      case 'exchange-sync':
+        return <ExchangeSyncPage />;
+
       default:
-
         return <DashboardPage />;
-
     }
-
   };
 
 

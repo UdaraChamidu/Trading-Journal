@@ -21,17 +21,7 @@ export const PostsPage: React.FC = () => {
   const [editTitle, setEditTitle] = useState('');
   const [editContent, setEditContent] = useState('');
   const [updating, setUpdating] = useState(false);
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
-    addPost: true,
-    recentPosts: true,
-  });
 
-  const toggleSection = (section: string) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [section]: !prev[section],
-    }));
-  };
 
   useEffect(() => {
     const fetchPosts = async () => {

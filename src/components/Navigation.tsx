@@ -18,6 +18,10 @@ import {
   Bell,
   Newspaper,
   Activity,
+  Calculator,
+  BrainCircuit,
+  Users,
+  RefreshCw,
 } from "lucide-react";
 
 interface NavigationProps {
@@ -87,6 +91,12 @@ export const Navigation: React.FC<NavigationProps> = ({
       color: "text-indigo-400",
     },
     {
+      id: "calendar",
+      label: "Economic Calendar",
+      icon: Calendar,
+      color: "text-orange-400",
+    },
+    {
       id: "weekly-review",
       label: "Weekly Review",
       icon: Calendar,
@@ -97,6 +107,25 @@ export const Navigation: React.FC<NavigationProps> = ({
       label: "Trading Plan",
       icon: Target,
       color: "text-red-400",
+    },
+    { id: "calculator", label: "Calculator", icon: Calculator, color: "text-blue-400" },
+    {
+      id: "ai-coach",
+      label: "AI Coach",
+      icon: BrainCircuit,
+      color: "text-purple-400",
+    },
+    {
+      id: "social-hub",
+      label: "Social Hub",
+      icon: Users,
+      color: "text-pink-400",
+    },
+    {
+      id: "exchange-sync",
+      label: "Exchange Sync",
+      icon: RefreshCw,
+      color: "text-emerald-400",
     },
     { id: "journal", label: "Journal", icon: BookOpen, color: "text-cyan-400" },
     { id: "posts", label: "Posts", icon: FileText, color: "text-pink-400" },
