@@ -125,12 +125,6 @@ export const CryptoNewsPage: React.FC = () => {
   };
 
   const toggleFavorite = (newsId: string) => {
-  const toggleFavorite = (newsId: string) => {
-    const newFavorites = favorites.includes(newsId)
-      ? favorites.filter(id => id !== newsId)
-      : [...favorites, newsId];
-    saveFavorites(newFavorites);
-  };
     const newFavorites = favorites.includes(newsId)
       ? favorites.filter(id => id !== newsId)
       : [...favorites, newsId];

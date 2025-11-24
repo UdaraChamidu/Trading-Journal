@@ -109,52 +109,25 @@ export const Navigation: React.FC<NavigationProps> = ({
 
   return (
     <>
-      {/* Top Bar - Changed to FIXED to prevent layout shifts */}
-      <nav className="fixed top-0 left-0 right-0 h-16 bg-gradient-to-r from-slate-800 to-slate-900 border-b border-slate-700 z-50 shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full">
-          <div className="flex justify-end items-center h-full">
-            <div className="flex items-center gap-6">
-              {/* Logo & Title - Right Aligned */}
-              <div
-                className="flex items-center gap-3 cursor-pointer group"
-                onClick={() => onPageChange("dashboard")}
-              >
-                <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg group-hover:scale-110 transition-transform duration-200">
-                  <TrendingUp className="w-6 h-6 text-white" />
-                </div>
-                <span className="text-white font-bold text-lg hidden sm:inline group-hover:text-blue-300 transition-colors">
-                  Crypto Trading Hub
-                </span>
-              </div>
-
-              {/* Settings Button */}
-              <button
-                onClick={() => onPageChange("settings")}
-                className={`p-2 rounded-lg transition-all duration-200 transform hover:scale-110 ${
-                  currentPage === "settings"
-                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                    : "text-gray-300 hover:bg-slate-700 hover:text-white"
-                }`}
-              >
-                <Settings className="w-5 h-5" />
-              </button>
-
-              {/* Logout Button */}
-              <button
-                onClick={handleSignOut}
-                className="p-2 text-gray-300 hover:bg-red-600 hover:text-white rounded-lg transition-all duration-200 transform hover:scale-110"
-                title="Sign Out"
-              >
-                <LogOut className="w-5 h-5" />
-              </button>
+      {/* Sidebar - Fixed position, full height */}
+      <div className="fixed left-0 top-0 bottom-0 z-40 w-64 bg-gradient-to-b from-slate-800 to-slate-900 border-r border-slate-700 flex flex-col">
+        {/* Logo & Title */}
+        <div className="p-6 border-b border-slate-700">
+          <div
+            className="flex items-center gap-3 cursor-pointer group"
+            onClick={() => onPageChange("dashboard")}
+          >
+            <div className="p-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg group-hover:scale-110 transition-transform duration-200">
+              <TrendingUp className="w-6 h-6 text-white" />
             </div>
+            <span className="text-white font-bold text-lg group-hover:text-blue-300 transition-colors">
+              Crypto Hub
+            </span>
           </div>
         </div>
-      </nav>
 
-      {/* Sidebar - Fixed position, starts below header (top-16) */}
-      <div className="fixed left-0 top-16 bottom-0 z-40 w-64 bg-gradient-to-b from-slate-800 to-slate-900 border-r border-slate-700 overflow-y-auto">
-        <div className="py-4 pb-20">
+        {/* Navigation Items */}
+        <div className="flex-1 overflow-y-auto py-4">
           {navItems.map((item) => {
             const IconComponent = item.icon;
             return (
@@ -174,6 +147,31 @@ export const Navigation: React.FC<NavigationProps> = ({
               </button>
             );
           })}
+        </div>
+
+        {/* Bottom Actions */}
+        <div className="p-4 border-t border-slate-700 bg-slate-900/50">
+          <div className="flex items-center justify-between gap-2">
+            <button
+              onClick={() => onPageChange("settings")}
+              className={`flex-1 flex items-center justify-center p-2 rounded-lg transition-all duration-200 hover:bg-slate-700 ${
+                currentPage === "settings"
+                  ? "bg-slate-700 text-white"
+                  : "text-gray-400 hover:text-white"
+              }`}
+              title="Settings"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+            
+            <button
+              onClick={handleSignOut}
+              className="flex-1 flex items-center justify-center p-2 text-gray-400 hover:bg-red-600/20 hover:text-red-400 rounded-lg transition-all duration-200"
+              title="Sign Out"
+            >
+              <LogOut className="w-5 h-5" />
+            </button>
+          </div>
         </div>
       </div>
     </>

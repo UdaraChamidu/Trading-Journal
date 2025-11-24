@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react'; 
-import { Activity, TrendingUp, TrendingDown, BarChart3, PieChart as PieChartIcon, DollarSign, Target, Zap, Globe, AlertTriangle, PieChart } from 'lucide-react';
+import { Activity, TrendingUp, TrendingDown, BarChart3, PieChart as PieChartIcon, DollarSign, Target, Zap, Globe, AlertTriangle } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Pie, Cell, BarChart, Bar } from 'recharts';
-// import { Activity, TrendingUp, TrendingDown, BarChart3, PieChart, DollarSign, Target, Zap, Globe, AlertTriangle } from 'lucide-react';
-// import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RechartsPieChart, Cell, BarChart, Bar } from 'recharts';
 
 interface MarketData {
   name: string;
@@ -33,7 +31,6 @@ export const MarketInsightsPage: React.FC = () => {
     description: 'Investors are showing greed'
   });
   const [loading, setLoading] = useState(true);
-  const [timeframe, setTimeframe] = useState('24h');
 
   useEffect(() => {
     fetchMarketData();
