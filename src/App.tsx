@@ -3,6 +3,7 @@ import { AuthProvider, useAuth, ThemeProvider, useTheme } from './contexts/AuthC
 import { ToastProvider } from './contexts/ToastContext';
 import { Navigation } from './components/Navigation';
 import { ToastContainer } from './components/Toast';
+import FloatingChatButton from './components/FloatingChatButton';
 import { TradeEntryForm } from './components/TradeEntryForm';
 import { AuthPage } from './pages/AuthPage';
 import { Trade } from './types';
@@ -244,6 +245,7 @@ const AppContent: React.FC = () => {
 
 
       <ToastContainer />
+        <FloatingChatButton />
 
     </div>
 

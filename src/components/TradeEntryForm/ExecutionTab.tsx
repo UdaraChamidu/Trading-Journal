@@ -5,10 +5,9 @@ import { calculateRiskDollar, calculatePositionSize, calculateRiskRewardRatio } 
 interface ExecutionTabProps {
   data: any;
   onChange: (field: string, value: any) => void;
-  accountBalance: number;
 }
 
-export const ExecutionTab: React.FC<ExecutionTabProps> = ({ data, onChange, accountBalance }) => {
+export const ExecutionTab: React.FC<ExecutionTabProps> = ({ data, onChange }) => {
   useEffect(() => {
     if (data.risk_percent && data.account_balance) {
       const riskDollar = calculateRiskDollar(data.account_balance, data.risk_percent);
