@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Plus, Trash2, Edit2, TrendingUp, TrendingDown, AlertCircle, CheckCircle, Clock } from 'lucide-react';
+import { Bell, Plus, Trash2, TrendingUp, TrendingDown, AlertCircle, Clock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 

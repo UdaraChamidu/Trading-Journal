@@ -4,7 +4,7 @@ import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../lib/supabase';
 import { calculateWinRate, calculateProfitFactor } from '../lib/calculations';
 import { Trade } from '../types';
-import { ChevronDown, ChevronUp, BarChart3, CheckCircle, TrendingUp, BookOpen, Target, Calendar } from 'lucide-react';
+import { ChevronDown, ChevronUp, BarChart3, CheckCircle, TrendingUp, Calendar } from 'lucide-react';
 
 export const WeeklyReviewPage: React.FC = () => {
   const { session } = useAuth();
@@ -60,7 +60,7 @@ export const WeeklyReviewPage: React.FC = () => {
 
         const completed = (weekTrades || []).filter((t: Trade) => t.pl_dollar !== null);
         const wins = completed.filter((t: Trade) => t.trade_result === 'Win').length;
-        const losses = completed.filter((t: Trade) => t.trade_result === 'Loss').length;
+
 
         const avgRR =
           completed.length > 0
