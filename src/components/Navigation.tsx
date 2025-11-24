@@ -168,7 +168,7 @@ export const Navigation: React.FC<NavigationProps> = ({
               onClick={handleSignOut}
               className="flex-1 flex items-center justify-center p-2 text-gray-400 hover:bg-red-600/20 hover:text-red-400 rounded-lg transition-all duration-200"
               title="Sign Out"
-            >
+              >
               <LogOut className="w-5 h-5" />
             </button>
           </div>
