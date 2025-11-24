@@ -4,28 +4,31 @@ import { useAuth } from '../contexts/AuthContext';
 
 export const CalculatorPage: React.FC = () => {
   const { userProfile } = useAuth();
-  
+
   const [balance, setBalance] = useState<number>(10000);
   const [riskPercent, setRiskPercent] = useState<number>(1);
   const [entryPrice, setEntryPrice] = useState<number>(0);
   const [stopLoss, setStopLoss] = useState<number>(0);
   const [direction, setDirection] = useState<'long' | 'short'>('long');
-  
+  const [leverage, setLeverage] = useState<number>(1);
+
   // Results
   const [positionSize, setPositionSize] = useState<number>(0);
   const [positionValue, setPositionValue] = useState<number>(0);
   const [riskAmount, setRiskAmount] = useState<number>(0);
-  const [leverage, setLeverage] = useState<number>(1);
-  
+
+  // Load user balance if available
   useEffect(() => {
     if (userProfile?.account_balance) {
       setBalance(userProfile.account_balance);
     }
   }, [userProfile]);
 
+  // Recalculate when inputs change
   useEffect(() => {
     calculateSize();
-  }, [balance, riskPercent, entryPrice, stopLoss, direction]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [balance, riskPercent, entryPrice, stopLoss, direction, leverage]);
 
   const calculateSize = () => {
     if (!entryPrice || !stopLoss) {
@@ -35,33 +38,25 @@ export const CalculatorPage: React.FC = () => {
       return;
     }
 
-    const riskAmt = balance * (riskPercent / 100);
-    setRiskAmount(riskAmt);
+    // Base risk amount based on balance and risk percent
+    const baseRisk = balance * (riskPercent / 100);
+    setRiskAmount(baseRisk);
 
-    let priceDiff = 0;
-    if (direction === 'long') {
-      priceDiff = entryPrice - stopLoss;
-    } else {
-      priceDiff = stopLoss - entryPrice;
-    }
-
+    // Determine price difference based on direction
+    const priceDiff = direction === 'long' ? entryPrice - stopLoss : stopLoss - entryPrice;
     if (priceDiff <= 0) {
-      // Invalid SL for direction
+      // Invalid stop loss for chosen direction
       setPositionSize(0);
       setPositionValue(0);
       return;
     }
 
-    // Risk Amount = Position Size * Price Diff
-    // Position Size = Risk Amount / Price Diff
-    const size = riskAmt / priceDiff;
+    // Apply user-defined leverage to calculate position size
+    const size = (baseRisk * leverage) / priceDiff;
     setPositionSize(size);
-    
+
     const value = size * entryPrice;
     setPositionValue(value);
-    
-    // Simple leverage calc (Position Value / Balance)
-    setLeverage(value / balance);
   };
 
   return (
@@ -78,11 +73,10 @@ export const CalculatorPage: React.FC = () => {
         {/* Inputs */}
         <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg p-6 shadow-xl">
           <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            <DollarSign className="w-5 h-5 text-blue-400" />
-            Trade Parameters
+            <DollarSign className="w-5 h-5 text-blue-400" /> Trade Parameters
           </h2>
-
           <div className="space-y-4">
+            {/* Account Balance */}
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">Account Balance</label>
               <div className="relative">
@@ -90,12 +84,12 @@ export const CalculatorPage: React.FC = () => {
                 <input
                   type="number"
                   value={balance}
-                  onChange={(e) => setBalance(parseFloat(e.target.value) || 0)}
+                  onChange={e => setBalance(parseFloat(e.target.value) || 0)}
                   className="w-full pl-8 pr-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>
-
+            {/* Risk Percentage */}
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">Risk Percentage</label>
               <div className="relative">
@@ -104,19 +98,17 @@ export const CalculatorPage: React.FC = () => {
                   type="number"
                   step="0.1"
                   value={riskPercent}
-                  onChange={(e) => setRiskPercent(parseFloat(e.target.value) || 0)}
+                  onChange={e => setRiskPercent(parseFloat(e.target.value) || 0)}
                   className="w-full pl-8 pr-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
                 />
               </div>
             </div>
-
+            {/* Direction */}
             <div className="grid grid-cols-2 gap-4">
               <button
                 onClick={() => setDirection('long')}
                 className={`py-3 rounded-lg font-bold transition-all ${
-                  direction === 'long'
-                    ? 'bg-green-600 text-white shadow-lg shadow-green-500/20'
-                    : 'bg-slate-700 text-gray-400 hover:bg-slate-600'
+                  direction === 'long' ? 'bg-green-600 text-white shadow-lg shadow-green-500/20' : 'bg-slate-700 text-gray-400 hover:bg-slate-600'
                 }`}
               >
                 Long 📈
@@ -124,34 +116,32 @@ export const CalculatorPage: React.FC = () => {
               <button
                 onClick={() => setDirection('short')}
                 className={`py-3 rounded-lg font-bold transition-all ${
-                  direction === 'short'
-                    ? 'bg-red-600 text-white shadow-lg shadow-red-500/20'
-                    : 'bg-slate-700 text-gray-400 hover:bg-slate-600'
+                  direction === 'short' ? 'bg-red-600 text-white shadow-lg shadow-red-500/20' : 'bg-slate-700 text-gray-400 hover:bg-slate-600'
                 }`}
               >
                 Short 📉
               </button>
             </div>
-
+            {/* Entry Price */}
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">Entry Price</label>
               <input
                 type="number"
                 step="any"
                 value={entryPrice}
-                onChange={(e) => setEntryPrice(parseFloat(e.target.value) || 0)}
+                onChange={e => setEntryPrice(parseFloat(e.target.value) || 0)}
                 className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
                 placeholder="0.00"
               />
             </div>
-
+            {/* Stop Loss */}
             <div>
               <label className="block text-sm font-medium text-gray-400 mb-1">Stop Loss</label>
               <input
                 type="number"
                 step="any"
                 value={stopLoss}
-                onChange={(e) => setStopLoss(parseFloat(e.target.value) || 0)}
+                onChange={e => setStopLoss(parseFloat(e.target.value) || 0)}
                 className={`w-full px-4 py-3 bg-slate-700 border rounded-lg text-white focus:outline-none ${
                   (direction === 'long' && stopLoss >= entryPrice && entryPrice > 0) ||
                   (direction === 'short' && stopLoss <= entryPrice && entryPrice > 0)
@@ -163,10 +153,24 @@ export const CalculatorPage: React.FC = () => {
               {((direction === 'long' && stopLoss >= entryPrice && entryPrice > 0) ||
                 (direction === 'short' && stopLoss <= entryPrice && entryPrice > 0)) && (
                 <p className="text-red-400 text-xs mt-1 flex items-center gap-1">
-                  <AlertCircle className="w-3 h-3" />
-                  Invalid Stop Loss for {direction} position
+                  <AlertCircle className="w-3 h-3" /> Invalid Stop Loss for {direction} position
                 </p>
               )}
+            </div>
+            {/* Leverage */}
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-gray-400 mb-1">Leverage (x)</label>
+              <div className="relative">
+                <input
+                  type="number"
+                  min="1"
+                  step="0.1"
+                  value={leverage}
+                  onChange={e => setLeverage(parseFloat(e.target.value) || 1)}
+                  className="w-full pl-8 pr-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                />
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">x</span>
+              </div>
             </div>
           </div>
         </div>
@@ -175,10 +179,8 @@ export const CalculatorPage: React.FC = () => {
         <div className="space-y-6">
           <div className="bg-gradient-to-br from-indigo-900 to-purple-900 border border-indigo-700 rounded-lg p-6 shadow-xl">
             <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-              <RefreshCw className="w-5 h-5 text-indigo-400" />
-              Calculation Results
+              <RefreshCw className="w-5 h-5 text-indigo-400" /> Calculation Results
             </h2>
-
             <div className="space-y-6">
               <div className="bg-indigo-950/50 p-4 rounded-lg border border-indigo-800">
                 <div className="text-indigo-300 text-sm mb-1">Position Size (Units)</div>
@@ -186,7 +188,6 @@ export const CalculatorPage: React.FC = () => {
                   {positionSize > 0 ? positionSize.toFixed(4) : '0.0000'}
                 </div>
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div className="bg-indigo-950/50 p-4 rounded-lg border border-indigo-800">
                   <div className="text-indigo-300 text-sm mb-1">Position Value</div>
@@ -201,11 +202,10 @@ export const CalculatorPage: React.FC = () => {
                   </div>
                 </div>
               </div>
-
               <div className="bg-indigo-950/50 p-4 rounded-lg border border-indigo-800 flex justify-between items-center">
                 <div>
                   <div className="text-indigo-300 text-sm">Effective Leverage</div>
-                  <div className="text-xs text-indigo-400">Based on account balance</div>
+                  <div className="text-xs text-indigo-400">User defined</div>
                 </div>
                 <div className={`text-2xl font-bold font-mono ${leverage > 10 ? 'text-red-400' : 'text-green-400'}`}>
                   {leverage.toFixed(1)}x
@@ -213,12 +213,15 @@ export const CalculatorPage: React.FC = () => {
               </div>
             </div>
           </div>
-
           <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
             <h3 className="text-white font-bold mb-2">Risk Management Tip</h3>
             <p className="text-gray-400 text-sm">
-              Professional traders typically risk 1-2% of their account balance per trade. 
-              {leverage > 5 && <span className="text-yellow-400 block mt-2">⚠️ Your effective leverage is high ({leverage.toFixed(1)}x). Be careful!</span>}
+              Professional traders typically risk 1-2% of their account balance per trade.
+              {leverage > 5 && (
+                <span className="text-yellow-400 block mt-2">
+                  ⚠️ Your effective leverage is high ({leverage.toFixed(1)}x). Be careful!
+                </span>
+              )}
             </p>
           </div>
         </div>
