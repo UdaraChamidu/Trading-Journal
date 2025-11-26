@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Clock, Target, TrendingUp, AlertTriangle, CheckCircle, BookOpen } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ChevronDown, ChevronUp, Clock, Target, TrendingUp, AlertTriangle, CheckCircle, BookOpen, Edit3, Save, X, Plus } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 export const TradingPlanPage: React.FC = () => {
+  const { session } = useAuth();
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     overview: true,
     methodology: true,
@@ -14,6 +17,241 @@ export const TradingPlanPage: React.FC = () => {
     metrics: false,
     notes: false,
   });
+  const [editMode, setEditMode] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [sharedPlans, setSharedPlans] = useState<any[]>([]);
+  const [personalPlans, setPersonalPlans] = useState<any[]>([]);
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+
+  const allPlans = [...sharedPlans, ...personalPlans];
+  const [plan, setPlan] = useState<any>({
+    plan_title: 'My Trading Plan',
+    plan_version: '1.0',
+    plan_status: 'Active',
+    starting_capital: 10000,
+    risk_per_trade: '1-2%',
+    primary_asset: 'BTC/USD',
+    trading_style: 'Multi-timeframe Analysis',
+    h4_analysis: '',
+    m15_confirmation: '',
+    m1_execution: '',
+    entry_rules: '',
+    special_entries: '',
+    position_size_formula: '',
+    stop_loss_placement: '',
+    take_profit_strategy: '',
+    risk_reward_expectations: '',
+    trading_schedule: '',
+    optimal_hours: '',
+    news_considerations: '',
+    pre_trade_checklist: '',
+    h4_checklist: '',
+    m15_checklist: '',
+    m1_checklist: '',
+    mental_rules: '',
+    red_flags: '',
+    green_flags: '',
+    weekly_review: '',
+    monthly_review: '',
+    tracking_items: '',
+    risk_warnings: '',
+    process_goals: '',
+    outcome_goals: '',
+    final_notes: '',
+  });
+
+  useEffect(() => {
+    if (session) {
+      fetchTradingPlans();
+    }
+  }, [session]);
+
+  useEffect(() => {
+    if (allPlans.length > 0 && !selectedPlanId) {
+      setSelectedPlanId(allPlans[0].id);
+    }
+  }, [allPlans, selectedPlanId]);
+
+  useEffect(() => {
+    if (selectedPlanId) {
+      const selectedPlan = allPlans.find(p => p.id === selectedPlanId);
+      if (selectedPlan) {
+        setPlan(selectedPlan);
+      }
+    }
+  }, [selectedPlanId, allPlans]);
+
+  const fetchTradingPlans = async () => {
+    try {
+      // Fetch shared plans
+      const { data: sharedData, error: sharedError } = await supabase
+        .from('trading_plan')
+        .select('*')
+        .eq('is_public', true)
+        .order('updated_at', { ascending: false });
+
+      if (sharedError) throw sharedError;
+
+      // Fetch personal plans
+      const { data: personalData, error: personalError } = await supabase
+        .from('trading_plan')
+        .select('*')
+        .eq('user_id', session?.user?.id)
+        .eq('is_public', false)
+        .order('updated_at', { ascending: false });
+
+      if (personalError) throw personalError;
+
+      setSharedPlans(sharedData || []);
+      setPersonalPlans(personalData || []);
+
+      if ((sharedData || []).length === 0 && (personalData || []).length === 0) {
+        // Create a default shared plan if none exist
+        await createDefaultSharedPlan();
+      }
+    } catch (error) {
+      console.error('Error fetching trading plans:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const createDefaultSharedPlan = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('trading_plan')
+        .insert([{
+          user_id: null, // Shared plan
+          is_public: true,
+          plan_title: 'BTC ICT Trading Plan',
+          plan_version: '1.0',
+          plan_status: 'Practice/Learning Phase',
+          starting_capital: 100,
+          risk_per_trade: '1-2%',
+          primary_asset: 'BTC/USD',
+          trading_style: 'Multi-timeframe ICT (Smart Money Concepts)',
+          h4_analysis: `**Phase 1: 4H Analysis (Bias & Direction)**
+
+**Objective:** Identify main trend and institutional levels
+
+**1. Trend Identification**
+- Follow 4H market structure (Higher Highs/Higher Lows OR Lower Highs/Lower Lows)
+- Direction = Trend direction on 4H
+
+**2. Mark Key Levels**
+- Order Blocks (OBs): Last bullish/bearish candle before strong move
+- Fair Value Gaps (FVGs): 3-candle imbalance zones
+- Liquidity pools: Equal highs/lows, round numbers
+
+**3. Decision Point**
+- Wait for price to reach 4H POI (OB or FVG)
+- THEN move to 15min timeframe`,
+          m15_confirmation: `**Phase 2: 15min Confirmation (Entry Setup)**
+
+**Objective:** Confirm reversal at 4H POI
+
+**1. Wait for CHoCH (Change of Character)**
+- Bullish CHoCH: Break of previous lower high (in downtrend)
+- Bearish CHoCH: Break of previous higher low (in uptrend)
+- This confirms institutional interest at the 4H POI
+
+**2. Mark 15min Levels**
+- Identify new OBs after CHoCH
+- Mark FVGs created during the CHoCH move
+- Note: These become your 15min POIs
+
+**3. Decision Point**
+- Wait for price to retrace to 15min POI
+- THEN move to 1min timeframe`,
+          m1_execution: `**Phase 3: 1min Execution (Precise Entry)**
+
+**Objective:** Execute trade with optimal entry
+
+**1. Wait for 1min CHoCH**
+- Confirms strength at 15min POI
+- Shows short-term momentum shift
+
+**2. Identify 1min POIs**
+- Order Blocks in 1min
+- Fair Value Gaps in 1min
+- Fibonacci levels (0.618, 0.786 golden ratios)
+
+**3. Entry Execution**
+- If it can identify a single POI clearly, use it to enter.
+- If there are many POIs (FVG + OB), Enter when price touches Golden Pocket.
+- No additional confirmation needed (direct entry)
+- Multiple entries allowed across different 1min POIs (Because of 1 min most of the time trades can be lost)
+- If one trade loss then wait for another BOS or CHOCH in 15 min.`,
+        }])
+        .select();
+
+      if (error) throw error;
+
+      if (data && data[0]) {
+        setSharedPlans([data[0]]);
+      }
+    } catch (error) {
+      console.error('Error creating default shared plan:', error);
+    }
+  };
+
+  const createNewPlan = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('trading_plan')
+        .insert([{
+          user_id: session?.user?.id,
+          is_public: false,
+          plan_title: 'New Trading Plan',
+          plan_version: '1.0',
+          plan_status: 'Draft',
+          starting_capital: 10000,
+          risk_per_trade: '1-2%',
+          primary_asset: 'BTC/USD',
+          trading_style: 'Multi-timeframe Analysis',
+        }])
+        .select();
+
+      if (error) throw error;
+
+      if (data && data[0]) {
+        setPersonalPlans([data[0], ...personalPlans]);
+        setSelectedPlanId(data[0].id);
+        setEditMode(true);
+      }
+    } catch (error) {
+      console.error('Error creating new plan:', error);
+    }
+  };
+
+  const saveTradingPlan = async () => {
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from('trading_plan')
+        .update({
+          ...plan,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', selectedPlanId);
+
+      if (error) throw error;
+
+      // Update the plan in the local state
+      const updatedPlan = { ...plan, updated_at: new Date().toISOString() };
+      if (sharedPlans.some(p => p.id === selectedPlanId)) {
+        setSharedPlans(sharedPlans.map(p => p.id === selectedPlanId ? updatedPlan : p));
+      } else {
+        setPersonalPlans(personalPlans.map(p => p.id === selectedPlanId ? updatedPlan : p));
+      }
+      setEditMode(false);
+    } catch (error) {
+      console.error('Error saving trading plan:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const toggleSection = (section: string) => {
     setExpandedSections((prev) => ({
@@ -22,13 +260,74 @@ export const TradingPlanPage: React.FC = () => {
     }));
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-500 mx-auto mb-4"></div>
+          <div className="text-gray-400 text-lg">Loading trading plan...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
       <div className="text-center">
-        <h1 className="text-4xl font-bold text-white mb-2">BTC ICT Trading Plan</h1>
-        <p className="text-gray-400 text-lg">Practice Phase - Smart Money Concepts</p>
+        <div className="flex items-center justify-center gap-4 mb-4">
+          {allPlans.length > 1 && (
+            <select
+              value={selectedPlanId || ''}
+              onChange={(e) => setSelectedPlanId(e.target.value)}
+              className="px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white"
+            >
+              {allPlans.map(p => (
+                <option key={p.id} value={p.id}>
+                  {p.is_public ? `📖 ${p.plan_title}` : `👤 ${p.plan_title}`}
+                </option>
+              ))}
+            </select>
+          )}
+          <h1 className="text-4xl font-bold text-white">{plan.plan_title}</h1>
+          <button
+            onClick={createNewPlan}
+            className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            New Plan
+          </button>
+          {!plan.is_public && !editMode && (
+            <button
+              onClick={() => setEditMode(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+            >
+              <Edit3 className="w-4 h-4" />
+              Edit Plan
+            </button>
+          )}
+          {!plan.is_public && editMode && (
+            <div className="flex gap-2">
+              <button
+                onClick={saveTradingPlan}
+                disabled={saving}
+                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50"
+              >
+                <Save className="w-4 h-4" />
+                {saving ? 'Saving...' : 'Save'}
+              </button>
+              <button
+                onClick={() => setEditMode(false)}
+                className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+              >
+                <X className="w-4 h-4" />
+                Cancel
+              </button>
+            </div>
+          )}
+        </div>
+        <p className="text-gray-400 text-lg">{plan.plan_status} - {plan.trading_style}</p>
         <div className="mt-4 text-sm text-gray-500">
-          Plan Version: 1.0 | Created: 21 November 2025 | Owner: Udara Chamidu | Review: Monthly
+          Plan Version: {plan.plan_version} | Review: Monthly
         </div>
       </div>
 
@@ -54,24 +353,69 @@ export const TradingPlanPage: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-slate-700 p-4 rounded-lg">
                 <div className="text-sm text-gray-400">Starting Capital</div>
-                <div className="text-2xl font-bold text-green-400">$100</div>
+                {editMode ? (
+                  <input
+                    type="number"
+                    value={plan.starting_capital}
+                    onChange={(e) => setPlan({...plan, starting_capital: parseFloat(e.target.value) || 0})}
+                    className="w-full bg-slate-600 border border-slate-500 rounded px-2 py-1 text-green-400 font-bold"
+                  />
+                ) : (
+                  <div className="text-2xl font-bold text-green-400">${plan.starting_capital}</div>
+                )}
               </div>
               <div className="bg-slate-700 p-4 rounded-lg">
                 <div className="text-sm text-gray-400">Risk Per Trade</div>
-                <div className="text-2xl font-bold text-yellow-400">1-2%</div>
+                {editMode ? (
+                  <input
+                    type="text"
+                    value={plan.risk_per_trade}
+                    onChange={(e) => setPlan({...plan, risk_per_trade: e.target.value})}
+                    className="w-full bg-slate-600 border border-slate-500 rounded px-2 py-1 text-yellow-400 font-bold"
+                  />
+                ) : (
+                  <div className="text-2xl font-bold text-yellow-400">{plan.risk_per_trade}</div>
+                )}
               </div>
               <div className="bg-slate-700 p-4 rounded-lg">
                 <div className="text-sm text-gray-400">Status</div>
-                <div className="text-lg font-semibold text-blue-400">Practice/Learning Phase</div>
+                {editMode ? (
+                  <input
+                    type="text"
+                    value={plan.plan_status}
+                    onChange={(e) => setPlan({...plan, plan_status: e.target.value})}
+                    className="w-full bg-slate-600 border border-slate-500 rounded px-2 py-1 text-blue-400 font-semibold"
+                  />
+                ) : (
+                  <div className="text-lg font-semibold text-blue-400">{plan.plan_status}</div>
+                )}
               </div>
               <div className="bg-slate-700 p-4 rounded-lg">
                 <div className="text-sm text-gray-400">Primary Asset</div>
-                <div className="text-lg font-semibold text-white">BTC/USD</div>
+                {editMode ? (
+                  <input
+                    type="text"
+                    value={plan.primary_asset}
+                    onChange={(e) => setPlan({...plan, primary_asset: e.target.value})}
+                    className="w-full bg-slate-600 border border-slate-500 rounded px-2 py-1 text-white font-semibold"
+                  />
+                ) : (
+                  <div className="text-lg font-semibold text-white">{plan.primary_asset}</div>
+                )}
               </div>
             </div>
             <div className="mt-4">
               <div className="text-sm text-gray-400">Trading Style</div>
-              <div className="text-lg font-semibold text-purple-400">Multi-timeframe ICT (Smart Money Concepts)</div>
+              {editMode ? (
+                <input
+                  type="text"
+                  value={plan.trading_style}
+                  onChange={(e) => setPlan({...plan, trading_style: e.target.value})}
+                  className="w-full bg-slate-600 border border-slate-500 rounded px-2 py-1 text-purple-400 font-semibold"
+                />
+              ) : (
+                <div className="text-lg font-semibold text-purple-400">{plan.trading_style}</div>
+              )}
             </div>
           </div>
         )}
@@ -99,29 +443,44 @@ export const TradingPlanPage: React.FC = () => {
             {/* Phase 1 */}
             <div className="bg-slate-700 p-4 rounded-lg">
               <h3 className="text-lg font-bold text-white mb-3">Phase 1: 4H Analysis (Bias & Direction)</h3>
-              <p className="text-gray-300 mb-3"><strong>Objective:</strong> Identify main trend and institutional levels</p>
-              <div className="space-y-2">
-                <h4 className="font-semibold text-blue-400">1. Trend Identification</h4>
-                <ul className="list-disc list-inside text-gray-300 ml-4 space-y-1">
-                  <li>Follow 4H market structure (Higher Highs/Higher Lows OR Lower Highs/Lower Lows)</li>
-                  <li>Direction = Trend direction on 4H</li>
-                </ul>
-              </div>
-              <div className="space-y-2 mt-4">
-                <h4 className="font-semibold text-blue-400">2. Mark Key Levels</h4>
-                <ul className="list-disc list-inside text-gray-300 ml-4 space-y-1">
-                  <li>Order Blocks (OBs): Last bullish/bearish candle before strong move</li>
-                  <li>Fair Value Gaps (FVGs): 3-candle imbalance zones</li>
-                  <li>Liquidity pools: Equal highs/lows, round numbers</li>
-                </ul>
-              </div>
-              <div className="space-y-2 mt-4">
-                <h4 className="font-semibold text-blue-400">3. Decision Point</h4>
-                <ul className="list-disc list-inside text-gray-300 ml-4 space-y-1">
-                  <li>Wait for price to reach 4H POI (OB or FVG)</li>
-                  <li>THEN move to 15min timeframe</li>
-                </ul>
-              </div>
+              {editMode ? (
+                <textarea
+                  value={plan.h4_analysis || ''}
+                  onChange={(e) => setPlan({...plan, h4_analysis: e.target.value})}
+                  placeholder="Describe your 4H analysis methodology..."
+                  className="w-full bg-slate-600 border border-slate-500 rounded px-3 py-2 text-gray-300 min-h-32"
+                />
+              ) : (
+                <div className="text-gray-300 whitespace-pre-line">
+                  {plan.h4_analysis || (
+                    <>
+                      <p className="mb-3"><strong>Objective:</strong> Identify main trend and institutional levels</p>
+                      <div className="space-y-2">
+                        <h4 className="font-semibold text-blue-400">1. Trend Identification</h4>
+                        <ul className="list-disc list-inside ml-4 space-y-1">
+                          <li>Follow 4H market structure (Higher Highs/Higher Lows OR Lower Highs/Lower Lows)</li>
+                          <li>Direction = Trend direction on 4H</li>
+                        </ul>
+                      </div>
+                      <div className="space-y-2 mt-4">
+                        <h4 className="font-semibold text-blue-400">2. Mark Key Levels</h4>
+                        <ul className="list-disc list-inside ml-4 space-y-1">
+                          <li>Order Blocks (OBs): Last bullish/bearish candle before strong move</li>
+                          <li>Fair Value Gaps (FVGs): 3-candle imbalance zones</li>
+                          <li>Liquidity pools: Equal highs/lows, round numbers</li>
+                        </ul>
+                      </div>
+                      <div className="space-y-2 mt-4">
+                        <h4 className="font-semibold text-blue-400">3. Decision Point</h4>
+                        <ul className="list-disc list-inside ml-4 space-y-1">
+                          <li>Wait for price to reach 4H POI (OB or FVG)</li>
+                          <li>THEN move to 15min timeframe</li>
+                        </ul>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Phase 2 */}
@@ -208,11 +567,26 @@ export const TradingPlanPage: React.FC = () => {
           <div className="border-t border-slate-700 p-6 space-y-6">
             <div className="bg-slate-700 p-4 rounded-lg">
               <h3 className="text-lg font-bold text-white mb-3">Entry Rules</h3>
-              <ul className="list-disc list-inside text-gray-300 space-y-1">
-                <li><strong>Multiple Positions:</strong> Yes, across different 1min POIs (OB, FVG, Fib levels)</li>
-                <li><strong>Entry Type:</strong> Market/Limit order at exact Golden Pocket/POI touch</li>
-                <li><strong>Position Sizing:</strong> Calculate based on stop loss distance</li>
-              </ul>
+              {editMode ? (
+                <textarea
+                  value={plan.entry_rules || ''}
+                  onChange={(e) => setPlan({...plan, entry_rules: e.target.value})}
+                  placeholder="Describe your entry rules..."
+                  className="w-full bg-slate-600 border border-slate-500 rounded px-3 py-2 text-gray-300 min-h-20"
+                />
+              ) : (
+                <div className="text-gray-300 whitespace-pre-line">
+                  {plan.entry_rules || (
+                    <>
+                      <ul className="list-disc list-inside space-y-1">
+                        <li><strong>Multiple Positions:</strong> Yes, across different 1min POIs (OB, FVG, Fib levels)</li>
+                        <li><strong>Entry Type:</strong> Market/Limit order at exact Golden Pocket/POI touch</li>
+                        <li><strong>Position Sizing:</strong> Calculate based on stop loss distance</li>
+                      </ul>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="bg-slate-700 p-4 rounded-lg">
@@ -294,7 +668,18 @@ export const TradingPlanPage: React.FC = () => {
         {expandedSections.schedule && (
           <div className="border-t border-slate-700 p-6">
             <div className="bg-green-900 border border-green-700 rounded-lg p-4 mb-6">
-              <h3 className="text-green-200 font-bold text-lg mb-2">Optimal Trading Hours: 8:00 PM - 7:00 AM</h3>
+              <h3 className="text-green-200 font-bold text-lg mb-2">Optimal Trading Hours</h3>
+              {editMode ? (
+                <input
+                  type="text"
+                  value={plan.optimal_hours || ''}
+                  onChange={(e) => setPlan({...plan, optimal_hours: e.target.value})}
+                  placeholder="e.g., 8:00 PM - 7:00 AM"
+                  className="w-full bg-green-800 border border-green-600 rounded px-3 py-2 text-green-100"
+                />
+              ) : (
+                <div className="text-green-100">{plan.optimal_hours || '8:00 PM - 7:00 AM'}</div>
+              )}
             </div>
 
             <div className="overflow-x-auto">
@@ -482,12 +867,27 @@ export const TradingPlanPage: React.FC = () => {
           <div className="border-t border-slate-700 p-6 space-y-4">
             <div className="bg-slate-700 p-4 rounded-lg">
               <h3 className="font-bold text-white mb-3">Mental Rules:</h3>
-              <ol className="list-decimal list-inside text-gray-300 space-y-1 ml-4">
-                <li><strong>Accept losses as business costs</strong> - With 1:25 R:R, 60-70% loss rate is normal</li>
-                <li><strong>Trust the process</strong> - Don't abandon strategy after 3-4 losses</li>
-                <li><strong>One setup at a time</strong> - Don't force trades outside your system</li>
-                <li><strong>Journal everything</strong> - Your data is your teacher</li>
-              </ol>
+              {editMode ? (
+                <textarea
+                  value={plan.mental_rules || ''}
+                  onChange={(e) => setPlan({...plan, mental_rules: e.target.value})}
+                  placeholder="Describe your mental rules..."
+                  className="w-full bg-slate-600 border border-slate-500 rounded px-3 py-2 text-gray-300 min-h-24"
+                />
+              ) : (
+                <div className="text-gray-300 whitespace-pre-line">
+                  {plan.mental_rules || (
+                    <>
+                      <ol className="list-decimal list-inside space-y-1 ml-4">
+                        <li><strong>Accept losses as business costs</strong> - With 1:25 R:R, 60-70% loss rate is normal</li>
+                        <li><strong>Trust the process</strong> - Don't abandon strategy after 3-4 losses</li>
+                        <li><strong>One setup at a time</strong> - Don't force trades outside your system</li>
+                        <li><strong>Journal everything</strong> - Your data is your teacher</li>
+                      </ol>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="bg-red-900 border border-red-700 rounded-lg p-4">
@@ -670,29 +1070,44 @@ export const TradingPlanPage: React.FC = () => {
         {expandedSections.notes && (
           <div className="border-t border-slate-700 p-6">
             <div className="bg-gradient-to-r from-blue-900 to-purple-900 border border-blue-700 rounded-lg p-6">
-              <p className="text-blue-100 mb-4">
-                <strong>Remember:</strong> This is a practice phase. Your primary goal is not profit but mastery of:
-              </p>
-              <ol className="list-decimal list-inside text-blue-100 space-y-1 ml-4 mb-4">
-                <li>Identifying ICT concepts across timeframes</li>
-                <li>Patience in waiting for full confirmations</li>
-                <li>Emotional control during losing streaks</li>
-                <li>Data collection and analysis</li>
-              </ol>
+              {editMode ? (
+                <textarea
+                  value={plan.final_notes || ''}
+                  onChange={(e) => setPlan({...plan, final_notes: e.target.value})}
+                  placeholder="Add your final notes and motivation..."
+                  className="w-full bg-blue-800 border border-blue-600 rounded px-3 py-2 text-blue-100 min-h-32"
+                />
+              ) : (
+                <div className="text-blue-100 whitespace-pre-line">
+                  {plan.final_notes || (
+                    <>
+                      <p className="mb-4">
+                        <strong>Remember:</strong> This is a practice phase. Your primary goal is not profit but mastery of:
+                      </p>
+                      <ol className="list-decimal list-inside space-y-1 ml-4 mb-4">
+                        <li>Identifying ICT concepts across timeframes</li>
+                        <li>Patience in waiting for full confirmations</li>
+                        <li>Emotional control during losing streaks</li>
+                        <li>Data collection and analysis</li>
+                      </ol>
 
-              <p className="text-blue-100 mb-4">
-                <strong>Your edge is:</strong>
-              </p>
-              <ul className="list-disc list-inside text-blue-100 space-y-1 ml-4 mb-4">
-                <li>Multi-timeframe confluence</li>
-                <li>High R:R setups</li>
-                <li>Proper risk management</li>
-                <li>Consistent execution</li>
-              </ul>
+                      <p className="mb-4">
+                        <strong>Your edge is:</strong>
+                      </p>
+                      <ul className="list-disc list-inside space-y-1 ml-4 mb-4">
+                        <li>Multi-timeframe confluence</li>
+                        <li>High R:R setups</li>
+                        <li>Proper risk management</li>
+                        <li>Consistent execution</li>
+                      </ul>
 
-              <p className="text-blue-100 font-bold text-center text-lg">
-                Stay disciplined. Trust your data. One trade at a time.
-              </p>
+                      <p className="font-bold text-center text-lg">
+                        Stay disciplined. Trust your data. One trade at a time.
+                      </p>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
