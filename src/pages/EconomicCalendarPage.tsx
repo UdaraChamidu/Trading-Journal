@@ -80,6 +80,16 @@ const MOCK_EVENTS: EconomicEvent[] = [
 
 export const EconomicCalendarPage: React.FC = () => {
   const [filter, setFilter] = useState<'All' | 'High' | 'Medium' | 'Low'>('All');
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+
+  // Simulate live updates every hour
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setLastUpdated(new Date());
+    }, 3600000); // 1 hour
+
+    return () => clearInterval(interval);
+  }, []);
 
   const filteredEvents = filter === 'All' 
     ? MOCK_EVENTS 
@@ -102,6 +112,10 @@ export const EconomicCalendarPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-white">Economic Calendar</h1>
         </div>
         <p className="text-gray-400 text-lg">Track high-impact market events and economic data releases</p>
+        <p className="text-sm text-indigo-400 mt-2 flex items-center justify-center gap-1">
+          <Clock className="w-4 h-4" />
+          Last updated: {lastUpdated.toLocaleTimeString()}
+        </p>
       </div>
 
       <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg overflow-hidden shadow-xl">

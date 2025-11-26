@@ -27,11 +27,19 @@ export const PriceAlertsPage: React.FC = () => {
     target_price: 0,
     condition: 'above' as 'above' | 'below'
   });
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
     if (session) {
       fetchAlerts();
       fetchCryptoPrices();
+
+      // Set up live updates every 30 seconds
+      const interval = setInterval(() => {
+        fetchCryptoPrices();
+      }, 30000);
+
+      return () => clearInterval(interval);
     }
   }, [session]);
 
@@ -83,6 +91,7 @@ export const PriceAlertsPage: React.FC = () => {
         prices[symbolMap[id] || id.toUpperCase()] = priceData.usd;
       });
       setCryptoPrices(prices);
+      setLastUpdated(new Date());
     } catch (error) {
       console.error('Error fetching crypto prices:', error);
     }
@@ -244,10 +253,18 @@ export const PriceAlertsPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-white">Price Alerts</h1>
         </div>
         <p className="text-gray-400 text-lg mb-2">Get notified when cryptocurrencies reach your target prices</p>
-        <p className="text-sm text-gray-500">
-          {alerts.filter(a => a.status === 'active').length} active alerts • 
-          {alerts.filter(a => a.status === 'triggered').length} triggered
-        </p>
+        <div className="flex items-center justify-center gap-4 text-sm">
+          <span className="text-gray-500">
+            {alerts.filter(a => a.status === 'active').length} active alerts •
+            {alerts.filter(a => a.status === 'triggered').length} triggered
+          </span>
+          {lastUpdated && (
+            <span className="text-yellow-400 flex items-center gap-1">
+              <Clock className="w-4 h-4" />
+              Last updated: {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Add Alert Button */}

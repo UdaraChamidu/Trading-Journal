@@ -22,10 +22,18 @@ export const CryptoPricesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'market_cap' | 'price' | 'price_change_percentage_24h'>('market_cap');
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
     fetchCryptos();
     loadFavorites();
+
+    // Set up live updates every 60 seconds
+    const interval = setInterval(() => {
+      fetchCryptos();
+    }, 60000);
+
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -39,6 +47,7 @@ export const CryptoPricesPage: React.FC = () => {
       );
       const data = await response.json();
       setCryptos(data);
+      setLastUpdated(new Date());
     } catch (error) {
       console.error('Error fetching crypto data:', error);
     } finally {
@@ -129,7 +138,15 @@ export const CryptoPricesPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-white">Live Crypto Prices</h1>
         </div>
         <p className="text-gray-400 text-lg mb-2">Real-time cryptocurrency market data</p>
-        <p className="text-sm text-gray-500">Powered by CoinGecko API</p>
+        <div className="flex items-center justify-center gap-4 text-sm">
+          <span className="text-gray-500">Powered by CoinGecko API</span>
+          {lastUpdated && (
+            <span className="text-green-400 flex items-center gap-1">
+              <Activity className="w-4 h-4" />
+              Last updated: {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Search and Filter Controls */}

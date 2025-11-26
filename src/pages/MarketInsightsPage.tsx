@@ -31,23 +31,37 @@ export const MarketInsightsPage: React.FC = () => {
     description: 'Investors are showing greed'
   });
   const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
     fetchMarketData();
     generateSentimentData();
+
+    // Set up live updates every 60 seconds
+    const interval = setInterval(() => {
+      fetchMarketData();
+    }, 60000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const fetchMarketData = async () => {
     try {
-      // Mock data for demonstration - in real app, fetch from CoinGecko API
-      const mockData: MarketData[] = [
-        { name: 'Bitcoin', price: 67500, change24h: 2.5, volume: 28000000000, marketCap: 1320000000000 },
-        { name: 'Ethereum', price: 3850, change24h: -1.2, volume: 15000000000, marketCap: 462000000000 },
-        { name: 'BNB', price: 595, change24h: 0.8, volume: 1800000000, marketCap: 89000000000 },
-        { name: 'Solana', price: 185, change24h: 4.2, volume: 3200000000, marketCap: 85000000000 },
-        { name: 'Cardano', price: 0.58, change24h: -2.1, volume: 800000000, marketCap: 20500000000 },
-      ];
-      setMarketData(mockData);
+      const response = await fetch(
+        'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=5&page=1&sparkline=false&price_change_percentage=24h'
+      );
+      const data = await response.json();
+
+      const marketData: MarketData[] = data.map((coin: any) => ({
+        name: coin.name,
+        price: coin.current_price,
+        change24h: coin.price_change_percentage_24h,
+        volume: coin.total_volume,
+        marketCap: coin.market_cap,
+      }));
+
+      setMarketData(marketData);
+      setLastUpdated(new Date());
     } catch (error) {
       console.error('Error fetching market data:', error);
     } finally {
@@ -130,7 +144,15 @@ export const MarketInsightsPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-white">Market Insights</h1>
         </div>
         <p className="text-gray-400 text-lg mb-2">Advanced analytics and market sentiment analysis</p>
-        <p className="text-sm text-gray-500">Real-time data powered by multiple sources</p>
+        <div className="flex items-center justify-center gap-4 text-sm">
+          <span className="text-gray-500">Real-time data powered by multiple sources</span>
+          {lastUpdated && (
+            <span className="text-indigo-400 flex items-center gap-1">
+              <Activity className="w-4 h-4" />
+              Last updated: {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Key Metrics Overview */}

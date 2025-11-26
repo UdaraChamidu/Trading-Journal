@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { calculateWinRate, calculateProfitFactor } from '../lib/calculations';
@@ -303,22 +304,22 @@ export const DashboardPage: React.FC = () => {
           Quick Actions
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <button className="bg-blue-800/50 p-4 rounded-lg text-blue-100 hover:bg-blue-700/50 transition-colors text-left">
+          <Link to="/crypto-prices" className="bg-blue-800/50 p-4 rounded-lg text-blue-100 hover:bg-blue-700/50 transition-colors text-left block">
             <div className="font-semibold mb-1">📊 View Live Prices</div>
             <div className="text-sm">Check current crypto market prices</div>
-          </button>
-          <button className="bg-green-800/50 p-4 rounded-lg text-green-100 hover:bg-green-700/50 transition-colors text-left">
+          </Link>
+          <Link to="/portfolio" className="bg-green-800/50 p-4 rounded-lg text-green-100 hover:bg-green-700/50 transition-colors text-left block">
             <div className="font-semibold mb-1">💰 Manage Portfolio</div>
             <div className="text-sm">Track your crypto holdings</div>
-          </button>
-          <button className="bg-purple-800/50 p-4 rounded-lg text-purple-100 hover:bg-purple-700/50 transition-colors text-left">
+          </Link>
+          <Link to="/trade-entry" className="bg-purple-800/50 p-4 rounded-lg text-purple-100 hover:bg-purple-700/50 transition-colors text-left block">
             <div className="font-semibold mb-1">📈 Add New Trade</div>
             <div className="text-sm">Record your latest trading activity</div>
-          </button>
-          <button className="bg-orange-800/50 p-4 rounded-lg text-orange-100 hover:bg-orange-700/50 transition-colors text-left">
+          </Link>
+          <Link to="/analytics" className="bg-orange-800/50 p-4 rounded-lg text-orange-100 hover:bg-orange-700/50 transition-colors text-left block">
             <div className="font-semibold mb-1">📊 View Analytics</div>
             <div className="text-sm">Analyze your trading performance</div>
-          </button>
+          </Link>
         </div>
       </div>
 

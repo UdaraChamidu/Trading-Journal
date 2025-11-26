@@ -23,6 +23,7 @@ export const CryptoNewsPage: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedSource, setSelectedSource] = useState('all');
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   const categories = [
     { id: 'all', name: 'All News', icon: Newspaper },
@@ -36,6 +37,13 @@ export const CryptoNewsPage: React.FC = () => {
   useEffect(() => {
     fetchNews();
     loadFavorites();
+
+    // Set up live updates every 5 minutes
+    const interval = setInterval(() => {
+      fetchNews();
+    }, 300000);
+
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -105,6 +113,7 @@ export const CryptoNewsPage: React.FC = () => {
       ];
 
       setNews(mockNews);
+      setLastUpdated(new Date());
     } catch (error) {
       console.error('Error fetching news:', error);
     } finally {
@@ -198,7 +207,15 @@ export const CryptoNewsPage: React.FC = () => {
           <h1 className="text-2xl font-bold text-white">Crypto News Hub</h1>
         </div>
         <p className="text-gray-400 text-lg mb-2">Stay updated with the latest cryptocurrency news</p>
-        <p className="text-sm text-gray-500">Curated news from trusted crypto sources</p>
+        <div className="flex items-center justify-center gap-4 text-sm">
+          <span className="text-gray-500">Curated news from trusted crypto sources</span>
+          {lastUpdated && (
+            <span className="text-cyan-400 flex items-center gap-1">
+              <Clock className="w-4 h-4" />
+              Last updated: {lastUpdated.toLocaleTimeString()}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Search and Filter Controls */}

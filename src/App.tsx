@@ -1,4 +1,5 @@
 import React, { useState, Suspense, lazy } from 'react';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth, ThemeProvider, useTheme } from './contexts/AuthContext';
 import { ToastProvider } from './contexts/ToastContext';
 import { Navigation } from './components/Navigation';
@@ -7,6 +8,7 @@ import FloatingChatButton from './components/FloatingChatButton';
 import { TradeEntryForm } from './components/TradeEntryForm';
 import { AuthPage } from './pages/AuthPage';
 import { Trade } from './types';
+import { Menu } from 'lucide-react';
 import './index.css';
 
 // Lazy load page components
@@ -35,8 +37,10 @@ const AppContent: React.FC = () => {
 
   const { session, loading, userProfile } = useAuth();
   const { isDarkMode, setThemeFromProfile } = useTheme();
-  const [currentPage, setCurrentPage] = useState('dashboard');
   const [editingTrade, setEditingTrade] = useState<Trade | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Sync theme with user profile
 
@@ -80,176 +84,140 @@ const AppContent: React.FC = () => {
 
 
 
-  const renderPage = () => {
-
-    switch (currentPage) {
-
-      case 'dashboard':
-
-        return <DashboardPage />;
-
-      case 'crypto-prices':
-
-        return <CryptoPricesPage />;
-
-      case 'portfolio':
-
-        return <PortfolioPage />;
-
-      case 'crypto-news':
-
-        return <CryptoNewsPage />;
-
-      case 'price-alerts':
-
-        return <PriceAlertsPage />;
-
-      case 'market-insights':
-
-        return <MarketInsightsPage />;
-
-      case 'trade-entry':
-
-        return editingTrade ? (
-
-          <TradeEntryForm
-
-            editingTrade={editingTrade}
-
-            onClose={() => {
-
-              setEditingTrade(null);
-
-              setCurrentPage('all-trades');
-
-            }}
-
-          />
-
-        ) : (
-
-          <TradeEntryForm onClose={() => setCurrentPage('dashboard')} />
-
-        );
-
-      case 'all-trades':
-
-        return (
-
-          <AllTradesPage
-
-            onEditTrade={(trade) => {
-
-              setEditingTrade(trade);
-
-              setCurrentPage('trade-entry');
-
-            }}
-
-          />
-
-        );
-
-      case 'analytics':
-
-        return <AnalyticsPage />;
-
-      case 'weekly-review':
-
-        return <WeeklyReviewPage />;
-
-      case 'trading-plan':
-
-        return <TradingPlanPage />;
-
-      case 'journal':
-
-        return <JournalPage />;
-
-      case 'goals':
-        return <GoalsPage />;
-
-      case 'posts':
-        return <PostsPage />;
-      
-      case 'settings':
-        return <SettingsPage />;
-
-      case 'calculator':
-        return <CalculatorPage />;
-
-      case 'calendar':
-        return <EconomicCalendarPage />;
-
-      case 'ai-coach':
-        return <AICoachPage />;
-
-      case 'social-hub':
-        return <SocialHubPage />;
-
-      case 'profile':
-        return <PublicProfilePage />;
-
-      case 'exchange-sync':
-        return <ExchangeSyncPage />;
-
-      default:
-        return <DashboardPage />;
-    }
+  const handleEditTrade = (trade: Trade) => {
+    setEditingTrade(trade);
+    navigate('/trade-entry');
   };
 
+  const handleCloseTradeForm = () => {
+    setEditingTrade(null);
+    navigate('/all-trades');
+  };
 
+  const handleNewTrade = () => {
+    setEditingTrade(null);
+    navigate('/trade-entry');
+  };
 
-  return (
+return (
 
-    <div className={`min-h-screen ${isDarkMode ? 'bg-slate-900' : 'bg-gray-100'}`}>
+  <div className={`min-h-screen ${isDarkMode ? 'bg-slate-900' : 'bg-gray-100'}`}>
 
-      <Navigation currentPage={currentPage} onPageChange={(page) => {
+    {/* Mobile Menu Button */}
+    <div className="md:hidden fixed top-4 left-4 z-50">
+      <button
+        onClick={() => setMobileMenuOpen(true)}
+        className="p-2 bg-slate-800 text-white rounded-lg hover:bg-slate-700 transition-colors"
+      >
+        <Menu className="w-6 h-6" />
+      </button>
+    </div>
 
-        setCurrentPage(page);
+    <Navigation mobileMenuOpen={mobileMenuOpen} onCloseMobileMenu={() => setMobileMenuOpen(false)} />
 
-        setEditingTrade(null);
+    <main className="ml-0 md:ml-64 max-w-7xl px-4 sm:px-6 lg:px-8 py-8 pt-16 md:pt-8">
 
-      }} />
+      <Suspense fallback={
 
+        <div className={`flex items-center justify-center min-h-screen ${
 
+          isDarkMode ? 'text-gray-400' : 'text-gray-600'
 
-      <main className="ml-64 max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+        }`}>
 
-        <Suspense fallback={
+          <div className="text-center">
 
-          <div className={`flex items-center justify-center min-h-screen ${
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
 
-            isDarkMode ? 'text-gray-400' : 'text-gray-600'
-
-          }`}>
-
-            <div className="text-center">
-
-              <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
-
-              <div>Loading...</div>
-
-            </div>
+            <div>Loading...</div>
 
           </div>
 
-        }>
+        </div>
 
-          {renderPage()}
+      }>
 
-        </Suspense>
+        <Routes>
 
-      </main>
+          <Route path="/" element={<DashboardPage />} />
 
+          <Route path="/dashboard" element={<DashboardPage />} />
 
+          <Route path="/crypto-prices" element={<CryptoPricesPage />} />
 
-      <ToastContainer />
-        <FloatingChatButton />
+          <Route path="/portfolio" element={<PortfolioPage />} />
 
-    </div>
+          <Route path="/crypto-news" element={<CryptoNewsPage />} />
 
-  );
+          <Route path="/price-alerts" element={<PriceAlertsPage />} />
+
+          <Route path="/market-insights" element={<MarketInsightsPage />} />
+
+          <Route path="/trade-entry" element={
+
+            editingTrade ? (
+
+              <TradeEntryForm
+
+                editingTrade={editingTrade}
+
+                onClose={handleCloseTradeForm}
+
+              />
+
+            ) : (
+
+              <TradeEntryForm onClose={() => navigate('/dashboard')} />
+
+            )
+
+          } />
+
+          <Route path="/all-trades" element={
+
+            <AllTradesPage onEditTrade={handleEditTrade} />
+
+          } />
+
+          <Route path="/analytics" element={<AnalyticsPage />} />
+
+          <Route path="/weekly-review" element={<WeeklyReviewPage />} />
+
+          <Route path="/trading-plan" element={<TradingPlanPage />} />
+
+          <Route path="/journal" element={<JournalPage />} />
+
+          <Route path="/goals" element={<GoalsPage />} />
+
+          <Route path="/posts" element={<PostsPage />} />
+
+          <Route path="/settings" element={<SettingsPage />} />
+
+          <Route path="/calculator" element={<CalculatorPage />} />
+
+          <Route path="/calendar" element={<EconomicCalendarPage />} />
+
+          <Route path="/ai-coach" element={<AICoachPage />} />
+
+          <Route path="/social-hub" element={<SocialHubPage />} />
+
+          <Route path="/profile" element={<PublicProfilePage />} />
+
+          <Route path="/exchange-sync" element={<ExchangeSyncPage />} />
+
+        </Routes>
+
+      </Suspense>
+
+    </main>
+
+    <ToastContainer />
+
+    <FloatingChatButton />
+
+  </div>
+
+);
 
 };
 
@@ -259,19 +227,23 @@ function App() {
 
   return (
 
-    <ThemeProvider>
+    <BrowserRouter>
 
-      <AuthProvider>
+      <ThemeProvider>
 
-        <ToastProvider>
+        <AuthProvider>
 
-          <AppContent />
+          <ToastProvider>
 
-        </ToastProvider>
+            <AppContent />
 
-      </AuthProvider>
+          </ToastProvider>
 
-    </ThemeProvider>
+        </AuthProvider>
+
+      </ThemeProvider>
+
+    </BrowserRouter>
 
   );
 
