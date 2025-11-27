@@ -24,87 +24,62 @@ export const PortfolioPage: React.FC = () => {
   const [newHolding, setNewHolding] = useState({
     symbol: '',
     name: '',
-    amount: 0,
-    avg_buy_price: 0
+    amount: '',
+    avg_buy_price: ''
   });
-
-  // Crypto prices cache
-  const [cryptoPrices, setCryptoPrices] = useState<Record<string, number>>({});
-  const [priceLoading, setPriceLoading] = useState(false);
 
   useEffect(() => {
     if (session) {
       fetchHoldings();
-      fetchCryptoPrices();
     }
   }, [session]);
 
   const fetchHoldings = async () => {
     try {
+      console.log('Fetching holdings for user:', session?.user?.id);
       const { data, error } = await supabase
         .from('portfolio_holdings')
         .select('*')
         .eq('user_id', session?.user?.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      console.log('Fetch holdings response:', { data, error });
+
+      if (error) {
+        console.error('Supabase error details:', error);
+        if (error.message?.includes('relation "portfolio_holdings" does not exist')) {
+          alert('Database table "portfolio_holdings" does not exist. Please run the SQL script in Supabase dashboard.');
+        }
+        throw error;
+      }
       setHoldings(data || []);
     } catch (error) {
       console.error('Error fetching portfolio:', error);
+      setHoldings([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const fetchCryptoPrices = async () => {
-    setPriceLoading(true);
-    try {
-      const symbols = holdings.map(h => h.symbol.toLowerCase());
-      if (symbols.length === 0) return;
-
-      const response = await fetch(
-        `https://api.coingecko.com/api/v3/simple/price?ids=${symbols.join(',')}&vs_currencies=usd`
-      );
-      const data = await response.json();
-      
-      const prices: Record<string, number> = {};
-      Object.entries(data).forEach(([symbol, priceData]: [string, any]) => {
-        prices[symbol] = priceData.usd;
-      });
-      setCryptoPrices(prices);
-    } catch (error) {
-      console.error('Error fetching crypto prices:', error);
-    } finally {
-      setPriceLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (holdings.length > 0 && Object.keys(cryptoPrices).length === 0) {
-      fetchCryptoPrices();
-    }
-  }, [holdings]);
-
-  // Calculate portfolio metrics
+  // Calculate portfolio metrics (using avg_buy_price as current price since no real-time data)
   const totalValue = holdings.reduce((sum, holding) => {
-    const currentPrice = cryptoPrices[holding.symbol.toLowerCase()] || holding.avg_buy_price;
-    return sum + (holding.amount * currentPrice);
+    return sum + (holding.amount * holding.avg_buy_price);
   }, 0);
 
   const totalInvested = holdings.reduce((sum, holding) => {
     return sum + (holding.amount * holding.avg_buy_price);
   }, 0);
 
-  const totalPnL = totalValue - totalInvested;
-  const totalPnLPercentage = totalInvested > 0 ? (totalPnL / totalInvested) * 100 : 0;
+  const totalPnL = 0; // No P&L calculation without real-time prices
+  const totalPnLPercentage = 0;
 
-  // Enhanced holdings with current prices and PnL
+  // Enhanced holdings (simplified without real-time prices)
   const enhancedHoldings = holdings.map(holding => {
-    const currentPrice = cryptoPrices[holding.symbol.toLowerCase()] || holding.avg_buy_price;
+    const currentPrice = holding.avg_buy_price; // Use buy price as current price
     const totalValue = holding.amount * currentPrice;
     const investedValue = holding.amount * holding.avg_buy_price;
-    const pnl = totalValue - investedValue;
-    const pnlPercentage = investedValue > 0 ? (pnl / investedValue) * 100 : 0;
+    const pnl = 0; // No P&L without real-time prices
+    const pnlPercentage = 0;
 
     return {
       ...holding,
@@ -117,36 +92,62 @@ export const PortfolioPage: React.FC = () => {
 
   const handleAddHolding = async () => {
     try {
+      const amount = parseFloat(newHolding.amount) || 0;
+      const avgBuyPrice = parseFloat(newHolding.avg_buy_price) || 0;
+
+      console.log('Adding holding:', {
+        symbol: newHolding.symbol,
+        name: newHolding.name,
+        amount,
+        avgBuyPrice,
+        userId: session?.user?.id
+      });
+
+      const insertData = {
+        user_id: session?.user?.id,
+        symbol: newHolding.symbol.toUpperCase(),
+        name: newHolding.name,
+        amount: amount,
+        avg_buy_price: avgBuyPrice,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      console.log('Inserting data:', insertData);
+
       const { data, error } = await supabase
         .from('portfolio_holdings')
-        .insert([
-          {
-            user_id: session?.user?.id,
-            symbol: newHolding.symbol.toUpperCase(),
-            name: newHolding.name,
-            amount: newHolding.amount,
-            avg_buy_price: newHolding.avg_buy_price
-          }
-        ])
+        .insert([insertData])
         .select();
 
-      if (error) throw error;
+      console.log('Supabase response:', { data, error });
+
+      if (error) {
+        console.error('Supabase error details:', error);
+        if (error.message?.includes('relation "portfolio_holdings" does not exist')) {
+          alert('Database table "portfolio_holdings" does not exist. Please run the SQL script in Supabase dashboard.');
+          return;
+        }
+        throw error;
+      }
 
       if (data && data[0]) {
         const newHoldingData = {
           id: data[0].id,
           symbol: newHolding.symbol.toUpperCase(),
           name: newHolding.name,
-          amount: newHolding.amount,
-          avg_buy_price: newHolding.avg_buy_price
+          amount: amount,
+          avg_buy_price: avgBuyPrice
         };
         setHoldings([...holdings, newHoldingData]);
+        console.log('Holding added successfully');
       }
 
       setShowAddModal(false);
-      setNewHolding({ symbol: '', name: '', amount: 0, avg_buy_price: 0 });
+      setNewHolding({ symbol: '', name: '', amount: '', avg_buy_price: '' });
     } catch (error) {
       console.error('Error adding holding:', error);
+      alert(`Error adding holding: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -202,7 +203,7 @@ export const PortfolioPage: React.FC = () => {
         </div>
         <p className="text-gray-400 text-lg mb-2">Track your cryptocurrency investments</p>
         <p className="text-sm text-gray-500">
-          {holdings.length} holding{holdings.length !== 1 ? 's' : ''} • Real-time P&L tracking
+          {holdings.length} holding{holdings.length !== 1 ? 's' : ''} • Manual cost tracking
         </p>
       </div>
 
@@ -211,7 +212,6 @@ export const PortfolioPage: React.FC = () => {
         <div className="bg-gradient-to-br from-green-900 to-green-800 border border-green-700 rounded-lg p-6 text-center">
           <div className="text-3xl font-bold text-green-200 mb-2">{formatCurrency(totalValue)}</div>
           <div className="text-green-300 text-sm">Total Portfolio Value</div>
-          {priceLoading && <div className="text-green-400 text-xs mt-1">Updating prices...</div>}
         </div>
         <div className="bg-gradient-to-br from-blue-900 to-blue-800 border border-blue-700 rounded-lg p-6 text-center">
           <div className="text-3xl font-bold text-blue-200 mb-2">{formatCurrency(totalInvested)}</div>
@@ -367,23 +367,23 @@ export const PortfolioPage: React.FC = () => {
           Portfolio Insights
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-blue-100">
-          <div className="bg-blue-800/50 p-3 rounded-lg">
-            <div className="font-semibold mb-1">📊 Real-time Tracking</div>
-            <div className="text-sm">Portfolio value updates automatically with live crypto prices</div>
-          </div>
-          <div className="bg-blue-800/50 p-3 rounded-lg">
-            <div className="font-semibold mb-1">💰 P&L Analysis</div>
-            <div className="text-sm">Track profits and losses for each holding and overall portfolio</div>
-          </div>
-          <div className="bg-blue-800/50 p-3 rounded-lg">
-            <div className="font-semibold mb-1">🎯 Investment Tracking</div>
-            <div className="text-sm">Monitor your average buy prices and current market values</div>
-          </div>
-          <div className="bg-blue-800/50 p-3 rounded-lg">
-            <div className="font-semibold mb-1">📈 Performance Metrics</div>
-            <div className="text-sm">Calculate returns and analyze your investment performance</div>
-          </div>
-        </div>
+           <div className="bg-blue-800/50 p-3 rounded-lg">
+             <div className="font-semibold mb-1">📊 Portfolio Tracking</div>
+             <div className="text-sm">Track your cryptocurrency holdings and investment amounts</div>
+           </div>
+           <div className="bg-blue-800/50 p-3 rounded-lg">
+             <div className="font-semibold mb-1">💰 Cost Basis Tracking</div>
+             <div className="text-sm">Monitor your average buy prices for each cryptocurrency</div>
+           </div>
+           <div className="bg-blue-800/50 p-3 rounded-lg">
+             <div className="font-semibold mb-1">🎯 Investment Management</div>
+             <div className="text-sm">Add, edit, and remove cryptocurrency holdings from your portfolio</div>
+           </div>
+           <div className="bg-blue-800/50 p-3 rounded-lg">
+             <div className="font-semibold mb-1">📈 Portfolio Overview</div>
+             <div className="text-sm">View total invested amount and portfolio composition</div>
+           </div>
+         </div>
       </div>
 
       {/* Add Holding Modal */}
@@ -418,7 +418,7 @@ export const PortfolioPage: React.FC = () => {
                   type="number"
                   step="any"
                   value={newHolding.amount}
-                  onChange={(e) => setNewHolding({...newHolding, amount: parseFloat(e.target.value) || 0})}
+                  onChange={(e) => setNewHolding({...newHolding, amount: e.target.value})}
                   className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
                   placeholder="0.5"
                 />
@@ -429,7 +429,7 @@ export const PortfolioPage: React.FC = () => {
                   type="number"
                   step="any"
                   value={newHolding.avg_buy_price}
-                  onChange={(e) => setNewHolding({...newHolding, avg_buy_price: parseFloat(e.target.value) || 0})}
+                  onChange={(e) => setNewHolding({...newHolding, avg_buy_price: e.target.value})}
                   className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
                   placeholder="45000"
                 />
