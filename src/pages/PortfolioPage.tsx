@@ -21,6 +21,7 @@ export const PortfolioPage: React.FC = () => {
   const [holdings, setHoldings] = useState<CryptoHolding[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [editingHolding, setEditingHolding] = useState<CryptoHolding | null>(null);
   const [newHolding, setNewHolding] = useState({
     symbol: '',
@@ -43,6 +44,17 @@ export const PortfolioPage: React.FC = () => {
       return () => clearInterval(interval);
     }
   }, [session]);
+
+  useEffect(() => {
+    if (editingHolding && showEditModal) {
+      setNewHolding({
+        symbol: editingHolding.symbol,
+        name: editingHolding.name,
+        amount: editingHolding.amount.toString(),
+        avg_buy_price: editingHolding.avg_buy_price.toString()
+      });
+    }
+  }, [editingHolding, showEditModal]);
 
   const fetchHoldings = async () => {
     try {
@@ -141,52 +153,75 @@ export const PortfolioPage: React.FC = () => {
       const amount = parseFloat(newHolding.amount) || 0;
       const avgBuyPrice = parseFloat(newHolding.avg_buy_price) || 0;
 
-      console.log('Adding holding:', {
-        symbol: newHolding.symbol,
-        name: newHolding.name,
-        amount,
-        avgBuyPrice,
-        userId: session?.user?.id
-      });
+      const symbol = newHolding.symbol.toUpperCase();
+      const existingHolding = holdings.find(h => h.symbol === symbol);
 
-      const insertData = {
-        user_id: session?.user?.id,
-        symbol: newHolding.symbol.toUpperCase(),
-        name: newHolding.name,
-        amount: amount,
-        avg_buy_price: avgBuyPrice,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      };
+      if (existingHolding) {
+        // Update existing holding with weighted average
+        const currentValue = existingHolding.amount * existingHolding.avg_buy_price;
+        const newValue = amount * avgBuyPrice;
+        const totalValue = currentValue + newValue;
+        const totalAmount = existingHolding.amount + amount;
+        const newAvgBuyPrice = totalValue / totalAmount;
 
-      console.log('Inserting data:', insertData);
+        const updateData = {
+          amount: totalAmount,
+          avg_buy_price: newAvgBuyPrice,
+          updated_at: new Date().toISOString()
+        };
 
-      const { data, error } = await supabase
-        .from('portfolio_holdings')
-        .insert([insertData])
-        .select();
+        const { error } = await supabase
+          .from('portfolio_holdings')
+          .update(updateData)
+          .eq('id', existingHolding.id);
 
-      console.log('Supabase response:', { data, error });
+        if (error) throw error;
 
-      if (error) {
-        console.error('Supabase error details:', error);
-        if (error.message?.includes('relation "portfolio_holdings" does not exist')) {
-          alert('Database table "portfolio_holdings" does not exist. Please run the SQL script in Supabase dashboard.');
-          return;
-        }
-        throw error;
-      }
+        // Update local state
+        setHoldings(holdings.map(h =>
+          h.id === existingHolding.id
+            ? { ...h, ...updateData }
+            : h
+        ));
 
-      if (data && data[0]) {
-        const newHoldingData = {
-          id: data[0].id,
-          symbol: newHolding.symbol.toUpperCase(),
+        console.log('Holding updated successfully');
+      } else {
+        // Add new holding
+        const insertData = {
+          user_id: session?.user?.id,
+          symbol: symbol,
           name: newHolding.name,
           amount: amount,
-          avg_buy_price: avgBuyPrice
+          avg_buy_price: avgBuyPrice,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         };
-        setHoldings([...holdings, newHoldingData]);
-        console.log('Holding added successfully');
+
+        const { data, error } = await supabase
+          .from('portfolio_holdings')
+          .insert([insertData])
+          .select();
+
+        if (error) {
+          console.error('Supabase error details:', error);
+          if (error.message?.includes('relation "portfolio_holdings" does not exist')) {
+            alert('Database table "portfolio_holdings" does not exist. Please run the SQL script in Supabase dashboard.');
+            return;
+          }
+          throw error;
+        }
+
+        if (data && data[0]) {
+          const newHoldingData = {
+            id: data[0].id,
+            symbol: symbol,
+            name: newHolding.name,
+            amount: amount,
+            avg_buy_price: avgBuyPrice
+          };
+          setHoldings([...holdings, newHoldingData]);
+          console.log('Holding added successfully');
+        }
       }
 
       setShowAddModal(false);
@@ -194,6 +229,44 @@ export const PortfolioPage: React.FC = () => {
     } catch (error) {
       console.error('Error adding holding:', error);
       alert(`Error adding holding: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  const handleEditHolding = async () => {
+    if (!editingHolding) return;
+
+    try {
+      const amount = parseFloat(newHolding.amount) || 0;
+      const avgBuyPrice = parseFloat(newHolding.avg_buy_price) || 0;
+
+      const updateData = {
+        symbol: newHolding.symbol.toUpperCase(),
+        name: newHolding.name,
+        amount: amount,
+        avg_buy_price: avgBuyPrice,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error } = await supabase
+        .from('portfolio_holdings')
+        .update(updateData)
+        .eq('id', editingHolding.id);
+
+      if (error) throw error;
+
+      // Update local state
+      setHoldings(holdings.map(h =>
+        h.id === editingHolding.id
+          ? { ...h, ...updateData }
+          : h
+      ));
+
+      setShowEditModal(false);
+      setEditingHolding(null);
+      setNewHolding({ symbol: '', name: '', amount: '', avg_buy_price: '' });
+    } catch (error) {
+      console.error('Error editing holding:', error);
+      alert(`Error editing holding: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -383,7 +456,10 @@ export const PortfolioPage: React.FC = () => {
                     <td className="px-6 py-4 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button
-                          onClick={() => setEditingHolding(holding)}
+                          onClick={() => {
+                            setEditingHolding(holding);
+                            setShowEditModal(true);
+                          }}
                           className="p-2 hover:bg-blue-600 rounded-lg transition-colors text-blue-400 hover:text-white"
                           title="Edit Holding"
                         >
@@ -552,6 +628,77 @@ export const PortfolioPage: React.FC = () => {
                 className="flex-1 px-4 py-2 bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white rounded-lg transition-all duration-200"
               >
                 Add Holding
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Holding Modal */}
+      {showEditModal && editingHolding && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-slate-800 border border-slate-700 rounded-lg p-6 w-full max-w-md mx-4">
+            <h3 className="text-xl font-bold text-white mb-4">Edit Holding</h3>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Symbol (e.g., BTC, ETH)</label>
+                <input
+                  type="text"
+                  value={newHolding.symbol}
+                  onChange={(e) => setNewHolding({...newHolding, symbol: e.target.value})}
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                  placeholder="BTC"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Name</label>
+                <input
+                  type="text"
+                  value={newHolding.name}
+                  onChange={(e) => setNewHolding({...newHolding, name: e.target.value})}
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                  placeholder="Bitcoin"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Amount</label>
+                <input
+                  type="number"
+                  step="any"
+                  value={newHolding.amount}
+                  onChange={(e) => setNewHolding({...newHolding, amount: e.target.value})}
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                  placeholder="0.5"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">Average Buy Price ($)</label>
+                <input
+                  type="number"
+                  step="any"
+                  value={newHolding.avg_buy_price}
+                  onChange={(e) => setNewHolding({...newHolding, avg_buy_price: e.target.value})}
+                  className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                  placeholder="45000"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowEditModal(false);
+                  setEditingHolding(null);
+                  setNewHolding({ symbol: '', name: '', amount: '', avg_buy_price: '' });
+                }}
+                className="flex-1 px-4 py-2 bg-slate-600 hover:bg-slate-500 text-white rounded-lg transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleEditHolding}
+                className="flex-1 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-lg transition-all duration-200"
+              >
+                Update Holding
               </button>
             </div>
           </div>
