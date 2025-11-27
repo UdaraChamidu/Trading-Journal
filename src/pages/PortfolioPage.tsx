@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Wallet, Plus, TrendingUp, TrendingDown, Edit2, Trash2, BarChart3, PieChart, DollarSign, Activity } from 'lucide-react';
+import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 
@@ -27,10 +28,19 @@ export const PortfolioPage: React.FC = () => {
     amount: '',
     avg_buy_price: ''
   });
+  const [prices, setPrices] = useState<Record<string, number>>({});
 
   useEffect(() => {
     if (session) {
       fetchHoldings();
+      fetchPrices();
+
+      // Set up live price updates every 60 seconds
+      const interval = setInterval(() => {
+        fetchPrices();
+      }, 60000);
+
+      return () => clearInterval(interval);
     }
   }, [session]);
 
@@ -61,25 +71,29 @@ export const PortfolioPage: React.FC = () => {
     }
   };
 
-  // Calculate portfolio metrics (using avg_buy_price as current price since no real-time data)
-  const totalValue = holdings.reduce((sum, holding) => {
-    return sum + (holding.amount * holding.avg_buy_price);
-  }, 0);
+  const fetchPrices = async () => {
+    try {
+      const response = await fetch(
+        'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&price_change_percentage=24h'
+      );
+      const data = await response.json();
+      const priceMap: Record<string, number> = {};
+      data.forEach((crypto: any) => {
+        priceMap[crypto.symbol.toUpperCase()] = crypto.current_price;
+      });
+      setPrices(priceMap);
+    } catch (error) {
+      console.error('Error fetching prices:', error);
+    }
+  };
 
-  const totalInvested = holdings.reduce((sum, holding) => {
-    return sum + (holding.amount * holding.avg_buy_price);
-  }, 0);
-
-  const totalPnL = 0; // No P&L calculation without real-time prices
-  const totalPnLPercentage = 0;
-
-  // Enhanced holdings (simplified without real-time prices)
+  // Enhanced holdings with real-time prices and P&L
   const enhancedHoldings = holdings.map(holding => {
-    const currentPrice = holding.avg_buy_price; // Use buy price as current price
+    const currentPrice = prices[holding.symbol] || holding.avg_buy_price;
     const totalValue = holding.amount * currentPrice;
     const investedValue = holding.amount * holding.avg_buy_price;
-    const pnl = 0; // No P&L without real-time prices
-    const pnlPercentage = 0;
+    const pnl = (currentPrice - holding.avg_buy_price) * holding.amount;
+    const pnlPercentage = holding.avg_buy_price > 0 ? ((currentPrice - holding.avg_buy_price) / holding.avg_buy_price) * 100 : 0;
 
     return {
       ...holding,
@@ -89,6 +103,38 @@ export const PortfolioPage: React.FC = () => {
       pnl_percentage: pnlPercentage
     };
   });
+
+  // Calculate portfolio metrics
+  const totalValue = enhancedHoldings.reduce((sum, holding) => {
+    return sum + (holding.total_value || 0);
+  }, 0);
+
+  const totalInvested = holdings.reduce((sum, holding) => {
+    return sum + (holding.amount * holding.avg_buy_price);
+  }, 0);
+
+  const totalPnL = enhancedHoldings.reduce((sum, holding) => {
+    return sum + (holding.pnl || 0);
+  }, 0);
+
+  const totalPnLPercentage = totalInvested > 0 ? (totalPnL / totalInvested) * 100 : 0;
+
+  // Pie chart data
+  const pieData = enhancedHoldings.map(holding => ({
+    name: holding.symbol,
+    value: holding.total_value || 0,
+  }));
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82ca9d', '#ffc658'];
+
+  // Allocation percentages
+  const holdingsWithAllocation = enhancedHoldings.map(holding => ({
+    ...holding,
+    allocation: totalValue > 0 ? ((holding.total_value || 0) / totalValue) * 100 : 0,
+  }));
+
+  // Top performers (by value)
+  const topPerformers = [...holdingsWithAllocation].sort((a, b) => (b.total_value || 0) - (a.total_value || 0)).slice(0, 5);
 
   const handleAddHolding = async () => {
     try {
@@ -359,6 +405,65 @@ export const PortfolioPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Portfolio Analysis */}
+      {enhancedHoldings.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Pie Chart */}
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg p-6">
+            <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+              <PieChart className="w-5 h-5 text-blue-400" />
+              Portfolio Allocation
+            </h3>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <RechartsPieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                </RechartsPieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Top Performers & Allocation */}
+          <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-lg p-6">
+            <h3 className="text-white font-bold text-lg mb-4 flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-green-400" />
+              Top Holdings
+            </h3>
+            <div className="space-y-3">
+              {topPerformers.map((holding, index) => (
+                <div key={holding.id} className="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-3 h-3 rounded-full`} style={{ backgroundColor: COLORS[index % COLORS.length] }}></div>
+                    <div>
+                      <div className="text-white font-medium">{holding.symbol}</div>
+                      <div className="text-gray-400 text-sm">{holding.name}</div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-white font-mono">{formatCurrency(holding.total_value || 0)}</div>
+                    <div className="text-gray-400 text-sm">{holding.allocation.toFixed(1)}%</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Portfolio Insights */}
       <div className="bg-gradient-to-r from-blue-900 to-purple-900 border border-blue-700 rounded-lg p-6">
