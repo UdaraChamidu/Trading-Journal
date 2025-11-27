@@ -134,6 +134,24 @@ export const PriceAlertsPage: React.FC = () => {
           'info',
           8000 // Show for 8 seconds
         );
+
+        // Add to main notifications system
+        const existingNotifications = JSON.parse(localStorage.getItem('trading-journal-notifications') || '[]');
+        const newNotification = {
+          id: `price-${alertId}-${Date.now()}`,
+          type: 'price_alert',
+          title: `${alert.symbol} Alert Triggered!`,
+          message: `${alert.symbol} has gone ${alert.condition} $${alert.target_price} (Current: $${alert.current_price})`,
+          timestamp: new Date().toISOString(),
+          read: false,
+          priority: 'high',
+          source: 'Price Alerts',
+          actionUrl: '/price-alerts',
+          metadata: { alertId: alertId }
+        };
+
+        const updatedNotifications = [newNotification, ...existingNotifications];
+        localStorage.setItem('trading-journal-notifications', JSON.stringify(updatedNotifications));
       }
 
       // Refresh alerts

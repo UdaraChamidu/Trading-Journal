@@ -503,6 +503,26 @@ export const EconomicCalendarPage: React.FC = () => {
       if (event.status === 'live' && event.countdown && event.countdown <= 300 && event.countdown > 270) {
         // Notify 5 minutes before event
         addToast(`🚨 ${event.crypto} ${event.event} starts in 5 minutes!`, 'info', 10000);
+
+        // Add to main notifications system if user has reminder set
+        if (eventReminders.has(event.id)) {
+          const existingNotifications = JSON.parse(localStorage.getItem('trading-journal-notifications') || '[]');
+          const newNotification = {
+            id: `event-${event.id}-${Date.now()}`,
+            type: 'event_reminder',
+            title: `${event.crypto} Event Starting Soon!`,
+            message: `${event.event} begins in 5 minutes (${new Date(`${event.date}T${event.time}`).toLocaleTimeString()})`,
+            timestamp: new Date().toISOString(),
+            read: false,
+            priority: 'high',
+            source: 'Economic Calendar',
+            actionUrl: '/calendar',
+            metadata: { eventId: event.id }
+          };
+
+          const updatedNotifications = [newNotification, ...existingNotifications];
+          localStorage.setItem('trading-journal-notifications', JSON.stringify(updatedNotifications));
+        }
       }
     });
   };
