@@ -871,6 +871,52 @@ export const DashboardPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Developer Credit */}
+      <div className="bg-gradient-to-r from-indigo-900/50 to-purple-900/50 border border-indigo-700/30 rounded-xl p-6 text-center">
+        <div className="flex items-center justify-center gap-4 mb-4">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
+            <span className="text-white font-bold text-lg">Y</span>
+          </div>
+          <div>
+            <h3 className="text-white font-bold text-lg">Built by Your Name</h3>
+            <p className="text-indigo-200 text-sm">Full-Stack Developer & Crypto Enthusiast</p>
+          </div>
+        </div>
+
+        <p className="text-indigo-100 text-sm mb-4 max-w-2xl mx-auto">
+          This comprehensive crypto trading platform was built with modern web technologies to help traders
+          manage their portfolios, track performance, and stay informed about market developments.
+        </p>
+
+        <div className="flex items-center justify-center gap-6 text-sm">
+          <a
+            href="/about"
+            className="text-indigo-300 hover:text-white transition-colors flex items-center gap-2"
+          >
+            <User className="w-4 h-4" />
+            Learn More About Me
+          </a>
+
+          <a
+            href="mailto:your.email@example.com"
+            className="text-indigo-300 hover:text-white transition-colors flex items-center gap-2"
+          >
+            <Mail className="w-4 h-4" />
+            Get In Touch
+          </a>
+
+          <a
+            href="https://github.com/yourusername"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-indigo-300 hover:text-white transition-colors flex items-center gap-2"
+          >
+            <Github className="w-4 h-4" />
+            View Source
+          </a>
+        </div>
+      </div>
     </div>
   );
 };

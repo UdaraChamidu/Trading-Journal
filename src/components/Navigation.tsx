@@ -183,6 +183,7 @@ export const Navigation: React.FC<NavigationProps> = ({ mobileMenuOpen, onCloseM
     { id: "journal", label: "Journal", icon: BookOpen, color: "text-cyan-400" },
     { id: "posts", label: "Posts", icon: FileText, color: "text-pink-400" },
     { id: "goals", label: "Goals", icon: Trophy, color: "text-yellow-400" },
+    { id: "about", label: "About", icon: User, color: "text-indigo-400" },
   ];
 
   const handleSignOut = async () => {

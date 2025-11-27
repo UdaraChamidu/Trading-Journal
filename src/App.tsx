@@ -5,6 +5,7 @@ import { ToastProvider } from './contexts/ToastContext';
 import { Navigation } from './components/Navigation';
 import { ToastContainer } from './components/Toast';
 import FloatingChatButton from './components/FloatingChatButton';
+import Footer from './components/Footer';
 import { TradeEntryForm } from './components/TradeEntryForm';
 import { AuthPage } from './pages/AuthPage';
 import { Trade } from './types';
@@ -33,6 +34,7 @@ const AICoachPage = lazy(() => import('./pages/AICoachPage'));
 const SocialHubPage = lazy(() => import('./pages/SocialHubPage'));
 const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'));
 const ExchangeSyncPage = lazy(() => import('./pages/ExchangeSyncPage'));
+const AboutPage = lazy(() => import('./pages/AboutPage'));
 
 const AppContent: React.FC = () => {
 
@@ -208,11 +210,15 @@ return (
 
           <Route path="/exchange-sync" element={<ExchangeSyncPage />} />
 
+          <Route path="/about" element={<AboutPage />} />
+
         </Routes>
 
       </Suspense>
 
     </main>
+
+    <Footer />
 
     <ToastContainer />
 
