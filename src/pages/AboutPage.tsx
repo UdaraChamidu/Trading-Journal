@@ -27,8 +27,8 @@ export const AboutPage: React.FC = () => {
 
           {/* Developer Info */}
           <div className="flex-1 text-center md:text-left">
-            <h2 className="text-3xl font-bold text-white mb-2">Your Name</h2>
-            <p className="text-xl text-blue-400 mb-4">Full-Stack Developer & Crypto Enthusiast</p>
+            <h2 className="text-3xl font-bold text-white mb-2">Udara Chamidu</h2>
+            <p className="text-xl text-blue-400 mb-4">AI/ML and Full-Stack Developer & Crypto Enthusiast</p>
             <p className="text-gray-300 text-lg leading-relaxed mb-6">
               Passionate developer specializing in modern web technologies and blockchain applications.
               Created this comprehensive crypto trading platform to help traders manage their portfolios,
@@ -59,39 +59,57 @@ export const AboutPage: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="space-y-4">
-            <div className="flex items-center gap-4 p-4 bg-slate-700/50 rounded-lg">
-              <Mail className="w-6 h-6 text-blue-400" />
+            <a
+              href="mailto:chamiduudara321@gmail.com"
+              className="flex items-center gap-4 p-4 bg-slate-700/50 rounded-lg hover:bg-slate-600/50 transition-colors group"
+            >
+              <Mail className="w-6 h-6 text-blue-400 group-hover:text-blue-300" />
               <div>
-                <div className="text-white font-medium">Email</div>
-                <div className="text-gray-400">your.email@example.com</div>
+                <div className="text-white font-medium group-hover:text-blue-300">Email</div>
+                <div className="text-gray-400 group-hover:text-gray-300">chamiduudara321@gmail.com</div>
               </div>
-            </div>
+            </a>
 
-            <div className="flex items-center gap-4 p-4 bg-slate-700/50 rounded-lg">
-              <Globe className="w-6 h-6 text-green-400" />
-              <div>
-                <div className="text-white font-medium">Website</div>
-                <div className="text-gray-400">https://yourwebsite.com</div>
+            <a
+              href="https://udara-chamidu-portfolio.vercel.app/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-4 p-4 bg-slate-700/50 rounded-lg hover:bg-slate-600/50 transition-colors group"
+            >
+              <Globe className="w-6 h-6 text-green-400 group-hover:text-green-300" />
+              <div className="flex-1">
+                <div className="text-white font-medium group-hover:text-green-300">Portfolio Website</div>
+                <div className="text-gray-400 group-hover:text-gray-300 text-sm truncate">udara-chamidu-portfolio.vercel.app</div>
               </div>
-            </div>
+            </a>
           </div>
 
           <div className="space-y-4">
-            <div className="flex items-center gap-4 p-4 bg-slate-700/50 rounded-lg">
-              <Github className="w-6 h-6 text-purple-400" />
-              <div>
-                <div className="text-white font-medium">GitHub</div>
-                <div className="text-gray-400">github.com/yourusername</div>
+            <a
+              href="https://github.com/UdaraChamidu"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-4 p-4 bg-slate-700/50 rounded-lg hover:bg-slate-600/50 transition-colors group"
+            >
+              <Github className="w-6 h-6 text-purple-400 group-hover:text-purple-300" />
+              <div className="flex-1">
+                <div className="text-white font-medium group-hover:text-purple-300">GitHub</div>
+                <div className="text-gray-400 group-hover:text-gray-300">github.com/UdaraChamidu</div>
               </div>
-            </div>
+            </a>
 
-            <div className="flex items-center gap-4 p-4 bg-slate-700/50 rounded-lg">
-              <Linkedin className="w-6 h-6 text-blue-400" />
-              <div>
-                <div className="text-white font-medium">LinkedIn</div>
-                <div className="text-gray-400">linkedin.com/in/yourprofile</div>
+            <a
+              href="https://www.linkedin.com/in/udara-herath-530006217"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-4 p-4 bg-slate-700/50 rounded-lg hover:bg-slate-600/50 transition-colors group"
+            >
+              <Linkedin className="w-6 h-6 text-blue-400 group-hover:text-blue-300" />
+              <div className="flex-1">
+                <div className="text-white font-medium group-hover:text-blue-300">LinkedIn</div>
+                <div className="text-gray-400 group-hover:text-gray-300 text-sm truncate">linkedin.com/in/udara-herath-530006217</div>
               </div>
-            </div>
+            </a>
           </div>
         </div>
       </div>
@@ -207,7 +225,7 @@ export const AboutPage: React.FC = () => {
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <a
-              href="mailto:your.email@example.com"
+              href="mailto:chamiduudara321@gmail.com"
               className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-bold rounded-lg transition-all duration-200"
             >
               <Mail className="w-5 h-5" />
@@ -215,7 +233,7 @@ export const AboutPage: React.FC = () => {
             </a>
 
             <a
-              href="https://github.com/yourusername"
+              href="https://github.com/UdaraChamidu"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white font-bold rounded-lg transition-all duration-200"
@@ -230,7 +248,7 @@ export const AboutPage: React.FC = () => {
       {/* Footer Credits */}
       <div className="text-center py-8 border-t border-slate-700">
         <p className="text-gray-400 flex items-center justify-center gap-2">
-          Made with <Heart className="w-4 h-4 text-red-400" /> by Your Name
+          Made with <Heart className="w-4 h-4 text-red-400" /> by Udara Chamidu
           <span className="mx-2">•</span>
           <Coffee className="w-4 h-4 text-yellow-400" /> Fueled by coffee
         </p>

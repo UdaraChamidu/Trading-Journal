@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { supabase } from '../lib/supabase';
 import { calculateWinRate, calculateProfitFactor } from '../lib/calculations';
 import { StatCard } from '../components/StatCard';
-import { TrendingUp, TrendingDown, Award, BarChart3, Target, Zap, Calendar, ChevronDown, ChevronUp, Wallet, DollarSign, Coins, Activity, PieChart, Users, MessageSquare, Newspaper, Bell, Settings, BookOpen, Calculator, BrainCircuit, ExternalLink, Star, Heart, Share2, Image, Clock, CheckCircle, AlertCircle, Info, Globe, Shield, Rocket, TrendingUp as TrendingUpIcon } from 'lucide-react';
+import { TrendingUp, TrendingDown, Award, BarChart3, Target, Zap, Calendar, ChevronDown, ChevronUp, Wallet, DollarSign, Coins, Activity, PieChart, Users, MessageSquare, Newspaper, Bell, Settings, BookOpen, Calculator, BrainCircuit, ExternalLink, Star, Heart, Share2, Image, Clock, CheckCircle, AlertCircle, Info, Globe, Shield, Rocket, TrendingUp as TrendingUpIcon, User, Mail, Github } from 'lucide-react';
 
 interface DashboardStats {
   totalTrades: number;
@@ -899,7 +899,7 @@ export const DashboardPage: React.FC = () => {
           </a>
 
           <a
-            href="mailto:your.email@example.com"
+            href="mailto:chamiduudara321@gmail.com"
             className="text-indigo-300 hover:text-white transition-colors flex items-center gap-2"
           >
             <Mail className="w-4 h-4" />
@@ -907,7 +907,7 @@ export const DashboardPage: React.FC = () => {
           </a>
 
           <a
-            href="https://github.com/yourusername"
+            href="https://github.com/UdaraChamidu"
             target="_blank"
             rel="noopener noreferrer"
             className="text-indigo-300 hover:text-white transition-colors flex items-center gap-2"
