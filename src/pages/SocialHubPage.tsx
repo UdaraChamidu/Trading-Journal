@@ -3,6 +3,7 @@ import { Users, TrendingUp, MessageSquare, Heart, Share2, Image, X, Send, Plus, 
 import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../lib/supabase';
+import { Link } from 'react-router-dom';
 
 interface SocialPost {
   id: string;
@@ -516,11 +517,15 @@ export const SocialHubPage: React.FC = () => {
               <div key={post.id} className="bg-slate-800 border border-slate-700 rounded-xl p-6 hover:border-slate-600 transition-colors">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-3">
-                    <img src={post.user.avatar} alt={post.user.name} className="w-10 h-10 rounded-full bg-slate-700" />
+                    <Link to="/profile">
+                      <img src={post.user.avatar} alt={post.user.name} className="w-10 h-10 rounded-full bg-slate-700 cursor-pointer hover:ring-2 hover:ring-blue-400 transition-all" />
+                    </Link>
                     <div>
-                      <div className="font-bold text-white hover:text-pink-400 cursor-pointer transition-colors">
-                        {post.user.name}
-                      </div>
+                      <Link to="/profile" className="hover:text-blue-400 transition-colors">
+                        <div className="font-bold text-white cursor-pointer">
+                          {post.user.name}
+                        </div>
+                      </Link>
                       <div className="text-sm text-gray-400">{post.user.handle} • {formatTimeAgo(post.created_at)}</div>
                     </div>
                   </div>

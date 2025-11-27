@@ -22,6 +22,7 @@ import {
   Calculator,
   BrainCircuit,
   Users,
+  User,
   RefreshCw,
   X,
 } from "lucide-react";
@@ -80,6 +81,12 @@ export const Navigation: React.FC<NavigationProps> = ({ mobileMenuOpen, onCloseM
       id: "dashboard",
       label: "Dashboard",
       icon: BarChart3,
+      color: "text-blue-400",
+    },
+    {
+      id: "profile",
+      label: "My Profile",
+      icon: User,
       color: "text-blue-400",
     },
     {
