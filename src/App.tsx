@@ -28,6 +28,7 @@ const SettingsPage = lazy(() => import('./pages/SettingsPage'));
 const PostsPage = lazy(() => import('./pages/PostsPage'));
 const CalculatorPage = lazy(() => import('./pages/CalculatorPage'));
 const EconomicCalendarPage = lazy(() => import('./pages/EconomicCalendarPage'));
+const NotificationsPage = lazy(() => import('./pages/NotificationsPage'));
 const AICoachPage = lazy(() => import('./pages/AICoachPage'));
 const SocialHubPage = lazy(() => import('./pages/SocialHubPage'));
 const PublicProfilePage = lazy(() => import('./pages/PublicProfilePage'));
@@ -196,6 +197,8 @@ return (
           <Route path="/calculator" element={<CalculatorPage />} />
 
           <Route path="/calendar" element={<EconomicCalendarPage />} />
+
+          <Route path="/notifications" element={<NotificationsPage />} />
 
           <Route path="/ai-coach" element={<AICoachPage />} />
 

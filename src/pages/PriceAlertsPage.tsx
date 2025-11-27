@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Plus, Trash2, TrendingUp, TrendingDown, AlertCircle, Clock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { useToast } from '../contexts/ToastContext';
 import { supabase } from '../lib/supabase';
 
 interface PriceAlert {
@@ -17,6 +18,7 @@ interface PriceAlert {
 
 export const PriceAlertsPage: React.FC = () => {
   const { session } = useAuth();
+  const { addToast } = useToast();
   const [alerts, setAlerts] = useState<PriceAlert[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
@@ -24,7 +26,7 @@ export const PriceAlertsPage: React.FC = () => {
   const [newAlert, setNewAlert] = useState({
     symbol: '',
     name: '',
-    target_price: 0,
+    target_price: '',
     condition: 'above' as 'above' | 'below'
   });
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -118,21 +120,20 @@ export const PriceAlertsPage: React.FC = () => {
     try {
       await supabase
         .from('price_alerts')
-        .update({ 
+        .update({
           status: 'triggered',
           triggered_at: new Date().toISOString()
         })
         .eq('id', alertId);
 
-      // Show notification (you can implement browser notifications here)
-      if (Notification.permission === 'granted') {
-        const alert = alerts.find(a => a.id === alertId);
-        if (alert) {
-          new Notification('Price Alert Triggered!', {
-            body: `${alert.symbol} has ${alert.condition} your target price of $${alert.target_price}`,
-            icon: '/favicon.ico'
-          });
-        }
+      // Show global toast notification
+      const alert = alerts.find(a => a.id === alertId);
+      if (alert) {
+        addToast(
+          `🚨 ${alert.symbol} Alert Triggered! Price has gone ${alert.condition} $${alert.target_price}`,
+          'info',
+          8000 // Show for 8 seconds
+        );
       }
 
       // Refresh alerts
@@ -144,6 +145,12 @@ export const PriceAlertsPage: React.FC = () => {
 
   const handleAddAlert = async () => {
     try {
+      const targetPrice = parseFloat(newAlert.target_price);
+      if (isNaN(targetPrice) || targetPrice <= 0) {
+        alert('Please enter a valid target price');
+        return;
+      }
+
       const { data, error } = await supabase
         .from('price_alerts')
         .insert([
@@ -151,7 +158,7 @@ export const PriceAlertsPage: React.FC = () => {
             user_id: session?.user?.id,
             symbol: newAlert.symbol.toUpperCase(),
             name: newAlert.name,
-            target_price: newAlert.target_price,
+            target_price: targetPrice,
             current_price: cryptoPrices[newAlert.symbol.toUpperCase()] || 0,
             condition: newAlert.condition,
             status: 'active'
@@ -166,9 +173,10 @@ export const PriceAlertsPage: React.FC = () => {
       }
 
       setShowAddModal(false);
-      setNewAlert({ symbol: '', name: '', target_price: 0, condition: 'above' });
+      setNewAlert({ symbol: '', name: '', target_price: '', condition: 'above' });
     } catch (error) {
       console.error('Error adding alert:', error);
+      alert('Failed to create alert. Please try again.');
     }
   };
 
@@ -492,7 +500,7 @@ export const PriceAlertsPage: React.FC = () => {
                   type="number"
                   step="any"
                   value={newAlert.target_price}
-                  onChange={(e) => setNewAlert({...newAlert, target_price: parseFloat(e.target.value) || 0})}
+                  onChange={(e) => setNewAlert({...newAlert, target_price: e.target.value})}
                   className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-yellow-500"
                   placeholder="50000"
                 />
@@ -512,7 +520,7 @@ export const PriceAlertsPage: React.FC = () => {
               </button>
               <button
                 onClick={handleAddAlert}
-                disabled={!newAlert.symbol || !newAlert.target_price}
+                disabled={!newAlert.symbol || !newAlert.target_price || isNaN(parseFloat(newAlert.target_price)) || parseFloat(newAlert.target_price) <= 0}
                 className="flex-1 px-4 py-2 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Create Alert

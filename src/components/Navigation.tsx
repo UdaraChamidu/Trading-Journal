@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -34,6 +34,46 @@ interface NavigationProps {
 export const Navigation: React.FC<NavigationProps> = ({ mobileMenuOpen, onCloseMobileMenu }) => {
   const navigate = useNavigate();
   const { signOut } = useAuth();
+
+  const [notificationCounts, setNotificationCounts] = useState<Record<string, number>>({});
+  const [totalUnread, setTotalUnread] = useState(0);
+
+  useEffect(() => {
+    const updateNotificationCounts = () => {
+      // Load notifications from localStorage
+      const saved = localStorage.getItem('trading-journal-notifications');
+      if (saved) {
+        const notifications = JSON.parse(saved);
+        const unreadNotifications = notifications.filter((n: any) => !n.read);
+
+        // Count notifications by source
+        const counts: Record<string, number> = {};
+        unreadNotifications.forEach((notification: any) => {
+          const source = notification.source.toLowerCase().replace(/\s+/g, '-');
+          counts[source] = (counts[source] || 0) + 1;
+        });
+
+        // Map sources to navigation IDs
+        const mappedCounts: Record<string, number> = {
+          'price-alerts': counts['price-alerts'] || 0,
+          'economic-calendar': counts['economic-calendar'] || 0,
+          'market-insights': counts['market-insights'] || 0,
+          'system': counts['system'] || 0,
+        };
+
+        setNotificationCounts(mappedCounts);
+        setTotalUnread(unreadNotifications.length);
+      }
+    };
+
+    // Initial load
+    updateNotificationCounts();
+
+    // Update every 10 seconds
+    const interval = setInterval(updateNotificationCounts, 10000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   const navItems = [
     {
@@ -95,6 +135,12 @@ export const Navigation: React.FC<NavigationProps> = ({ mobileMenuOpen, onCloseM
       label: "Economic Calendar",
       icon: Calendar,
       color: "text-orange-400",
+    },
+    {
+      id: "notifications",
+      label: "Notifications",
+      icon: Bell,
+      color: "text-red-400",
     },
     {
       id: "weekly-review",
@@ -179,6 +225,8 @@ export const Navigation: React.FC<NavigationProps> = ({ mobileMenuOpen, onCloseM
         <div className="flex-1 overflow-y-auto py-4">
           {navItems.map((item) => {
             const IconComponent = item.icon;
+            const notificationCount = notificationCounts[item.id] || 0;
+
             return (
               <NavLink
                 key={item.id}
@@ -193,7 +241,12 @@ export const Navigation: React.FC<NavigationProps> = ({ mobileMenuOpen, onCloseM
                 }
               >
                 <IconComponent className={`w-5 h-5 mr-3 ${item.color}`} />
-                <span className="font-medium">{item.label}</span>
+                <span className="font-medium flex-1">{item.label}</span>
+                {notificationCount > 0 && (
+                  <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-full min-w-[20px] text-center">
+                    {notificationCount > 99 ? '99+' : notificationCount}
+                  </span>
+                )}
               </NavLink>
             );
           })}
@@ -201,12 +254,12 @@ export const Navigation: React.FC<NavigationProps> = ({ mobileMenuOpen, onCloseM
 
         {/* Bottom Actions */}
         <div className="p-4 border-t border-slate-700 bg-slate-900/50">
-          <div className="flex items-center justify-between gap-2">
+          <div className="grid grid-cols-3 gap-2">
             <NavLink
               to="/settings"
               onClick={onCloseMobileMenu}
               className={({ isActive }) =>
-                `flex-1 flex items-center justify-center p-2 rounded-lg transition-all duration-200 hover:bg-slate-700 ${
+                `flex items-center justify-center p-2 rounded-lg transition-all duration-200 hover:bg-slate-700 ${
                   isActive
                     ? "bg-slate-700 text-white"
                     : "text-gray-400 hover:text-white"
@@ -216,12 +269,32 @@ export const Navigation: React.FC<NavigationProps> = ({ mobileMenuOpen, onCloseM
             >
               <Settings className="w-5 h-5" />
             </NavLink>
-            
+
+            <NavLink
+              to="/notifications"
+              onClick={onCloseMobileMenu}
+              className={({ isActive }) =>
+                `relative flex items-center justify-center p-2 rounded-lg transition-all duration-200 hover:bg-slate-700 ${
+                  isActive
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-400 hover:text-white"
+                }`
+              }
+              title="Notifications Center"
+            >
+              <Bell className="w-5 h-5" />
+              {totalUnread > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                  {totalUnread > 99 ? '99+' : totalUnread}
+                </span>
+              )}
+            </NavLink>
+
             <button
               onClick={handleSignOut}
-              className="flex-1 flex items-center justify-center p-2 text-gray-400 hover:bg-red-600/20 hover:text-red-400 rounded-lg transition-all duration-200"
+              className="flex items-center justify-center p-2 text-gray-400 hover:bg-red-600/20 hover:text-red-400 rounded-lg transition-all duration-200"
               title="Sign Out"
-              >
+            >
               <LogOut className="w-5 h-5" />
             </button>
           </div>
