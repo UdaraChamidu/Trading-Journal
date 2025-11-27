@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, AlertTriangle, TrendingUp, Calendar, DollarSign, X, CheckCircle, Clock, Filter } from 'lucide-react';
 import { useToast } from '../contexts/ToastContext';
+import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
 
 interface NotificationItem {
   id: string;
@@ -17,13 +19,21 @@ interface NotificationItem {
 
 export const NotificationsPage: React.FC = () => {
   const { addToast } = useToast();
+  const { session } = useAuth();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [filter, setFilter] = useState<'all' | 'unread' | 'price_alert' | 'event_reminder' | 'market_alert'>('all');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Clear any existing demo data on first load
+    const clearedDemo = localStorage.getItem('demo-cleared');
+    if (!clearedDemo) {
+      localStorage.removeItem('trading-journal-notifications');
+      localStorage.removeItem('notifications-demo-shown');
+      localStorage.setItem('demo-cleared', 'true');
+    }
+
     loadNotifications();
-    generateMockNotifications();
 
     // Set up real-time updates
     const interval = setInterval(() => {
@@ -51,7 +61,7 @@ export const NotificationsPage: React.FC = () => {
     setNotifications(notifs);
   };
 
-  const generateMockNotifications = () => {
+  const generateDemoNotifications = () => {
     const mockNotifications: NotificationItem[] = [
       // Price Alerts (User-created)
       {
@@ -134,54 +144,150 @@ export const NotificationsPage: React.FC = () => {
       }
     ];
 
-    // Only add if we don't have notifications already
-    if (notifications.length === 0) {
+    // Add demo notifications only once for new users
+    const existingNotifications = JSON.parse(localStorage.getItem('trading-journal-notifications') || '[]');
+    if (existingNotifications.length === 0) {
       saveNotifications(mockNotifications);
     }
   };
 
-  const checkForNewNotifications = () => {
-    // Only check for user-created price alerts and event reminders
-    // System notifications and market alerts are handled separately in sidebar
+  const checkForNewNotifications = async () => {
+    if (!session?.user?.id) return;
 
-    // Check for triggered price alerts
-    const priceAlerts = JSON.parse(localStorage.getItem('crypto-price-alerts') || '[]');
-    priceAlerts.forEach((alert: any) => {
-      // Mock logic - in real app would check current prices against targets
-      if (Math.random() > 0.95) { // 5% chance to simulate trigger
-        const newNotification: NotificationItem = {
-          id: `price-${Date.now()}-${Math.random()}`,
-          type: 'price_alert',
-          title: `${alert.symbol} Price Alert Triggered`,
-          message: `${alert.symbol} has reached your target price of $${alert.targetPrice}`,
-          timestamp: new Date(),
-          read: false,
-          priority: 'high',
-          source: 'Price Alerts',
-          actionUrl: '/price-alerts'
-        };
-        addNotification(newNotification);
-      }
-    });
+    try {
+      // Check for newly triggered price alerts from database
+      const { data: alerts, error: alertsError } = await supabase
+        .from('price_alerts')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .eq('status', 'triggered')
+        .gt('triggered_at', new Date(Date.now() - 60000).toISOString()); // Last minute
 
-    // Check for upcoming event reminders (5-minute warnings)
-    const eventReminders = new Set(JSON.parse(localStorage.getItem('crypto-event-reminders') || '[]'));
-    if (eventReminders.size > 0) {
-      // Mock logic - in real app would check event timings
-      if (Math.random() > 0.97) { // 3% chance to simulate event warning
-        const newNotification: NotificationItem = {
-          id: `event-${Date.now()}-${Math.random()}`,
-          type: 'event_reminder',
-          title: 'Event Starting Soon',
-          message: 'A crypto event you\'re tracking starts in 5 minutes',
-          timestamp: new Date(),
-          read: false,
-          priority: 'high',
-          source: 'Economic Calendar',
-          actionUrl: '/calendar'
-        };
-        addNotification(newNotification);
+      if (!alertsError && alerts && alerts.length > 0) {
+        alerts.forEach((alert: any) => {
+          // Check if we haven't already notified about this trigger
+          const existingNotification = notifications.find(n =>
+            n.type === 'price_alert' &&
+            n.metadata?.alertId === alert.id &&
+            n.timestamp > new Date(Date.now() - 60000) // Within last minute
+          );
+
+          if (!existingNotification) {
+            const newNotification: NotificationItem = {
+              id: `price-${alert.id}-${Date.now()}`,
+              type: 'price_alert',
+              title: `${alert.symbol} Alert Triggered!`,
+              message: `${alert.symbol} has gone ${alert.condition} $${alert.target_price} (Current: $${alert.current_price})`,
+              timestamp: new Date(),
+              read: false,
+              priority: 'high',
+              source: 'Price Alerts',
+              actionUrl: '/price-alerts',
+              metadata: { alertId: alert.id }
+            };
+            addNotification(newNotification);
+          }
+        });
       }
+
+      // Check for upcoming event reminders (from localStorage events)
+      const eventReminders = new Set(JSON.parse(localStorage.getItem('crypto-event-reminders') || '[]'));
+      if (eventReminders.size > 0) {
+        // Import the mock events (since they're stored locally)
+        const MOCK_CRYPTO_EVENTS = [
+          // Copy the events from EconomicCalendarPage
+          {
+            id: '1',
+            crypto: 'BTC',
+            event: 'Bitcoin Halving',
+            date: '2024-04-20',
+            time: '12:00',
+            status: 'upcoming',
+            impact: 'high',
+            description: 'Bitcoin supply reduction event',
+            expectedOutcome: 'Price surge expected'
+          },
+          {
+            id: '2',
+            crypto: 'ETH',
+            event: 'Dencun Upgrade',
+            date: '2024-03-15',
+            time: '14:00',
+            status: 'upcoming',
+            impact: 'high',
+            description: 'Ethereum network upgrade with proto-danksharding',
+            expectedOutcome: 'Reduced gas fees, improved scalability'
+          },
+          {
+            id: '3',
+            crypto: 'BTC',
+            event: 'SEC ETF Decision',
+            date: '2024-02-28',
+            time: '16:00',
+            status: 'upcoming',
+            impact: 'high',
+            description: 'Final decision on spot Bitcoin ETF applications',
+            expectedOutcome: 'Potential major price movement'
+          },
+          {
+            id: '4',
+            crypto: 'ETH',
+            event: 'Staking Rewards Update',
+            date: '2024-03-01',
+            time: '10:00',
+            status: 'upcoming',
+            impact: 'medium',
+            description: 'Ethereum staking rewards adjustment',
+            expectedOutcome: 'Minor staking yield changes'
+          },
+          {
+            id: '5',
+            crypto: 'BTC',
+            event: 'Consensus 2024',
+            date: '2024-03-10',
+            time: '09:00',
+            status: 'upcoming',
+            impact: 'medium',
+            description: 'Major Bitcoin conference in Austin, TX',
+            expectedOutcome: 'Industry networking and announcements'
+          }
+        ];
+
+        MOCK_CRYPTO_EVENTS.forEach((event: any) => {
+          if (eventReminders.has(event.id)) {
+            const eventTime = new Date(`${event.date}T${event.time}`);
+            const timeDiff = eventTime.getTime() - Date.now();
+            const minutesUntil = timeDiff / (1000 * 60);
+
+            // 5-minute warning for live events
+            if (minutesUntil <= 5 && minutesUntil > 4.5 && event.status === 'live') {
+              const existingNotification = notifications.find(n =>
+                n.type === 'event_reminder' &&
+                n.metadata?.eventId === event.id &&
+                n.timestamp > new Date(Date.now() - 300000) // Within last 5 minutes
+              );
+
+              if (!existingNotification) {
+                const newNotification: NotificationItem = {
+                  id: `event-${event.id}-${Date.now()}`,
+                  type: 'event_reminder',
+                  title: `${event.crypto} Event Starting Soon!`,
+                  message: `${event.event} begins in 5 minutes (${new Date(eventTime).toLocaleTimeString()})`,
+                  timestamp: new Date(),
+                  read: false,
+                  priority: 'high',
+                  source: 'Economic Calendar',
+                  actionUrl: '/calendar',
+                  metadata: { eventId: event.id }
+                };
+                addNotification(newNotification);
+              }
+            }
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error checking for new notifications:', error);
     }
   };
 
@@ -212,7 +318,10 @@ export const NotificationsPage: React.FC = () => {
 
   const clearAllNotifications = () => {
     saveNotifications([]);
-    addToast('All notifications cleared', 'info');
+    // Reset demo flag and clear any existing demo data
+    localStorage.removeItem('notifications-demo-shown');
+    localStorage.removeItem('trading-journal-notifications');
+    addToast('All notifications cleared - page will show empty until you create alerts', 'info');
   };
 
   const filteredNotifications = notifications.filter(notification => {
