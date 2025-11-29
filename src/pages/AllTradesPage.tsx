@@ -54,6 +54,14 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({
       const showLoading = isInitialLoad.current;
       fetchTrades(showLoading);
       isInitialLoad.current = false;
+
+      // Safety timeout to prevent infinite loading
+      const timeout = setTimeout(() => {
+        setLoading(false);
+        console.warn("Loading timeout reached for AllTradesPage");
+      }, 10000); // 10 seconds timeout
+
+      return () => clearTimeout(timeout);
     }
   }, [
     session,
@@ -574,6 +582,5 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({
     </div>
   );
 };
-
 
 export default AllTradesPage;

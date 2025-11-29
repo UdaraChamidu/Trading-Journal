@@ -1,8 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Bell, Plus, Trash2, TrendingUp, TrendingDown, AlertCircle, Clock } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { useToast } from '../contexts/ToastContext';
-import { supabase } from '../lib/supabase';
+import React, { useState, useEffect } from "react";
+import {
+  Bell,
+  Plus,
+  Trash2,
+  TrendingUp,
+  TrendingDown,
+  AlertCircle,
+  Clock,
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { useToast } from "../contexts/ToastContext";
+import { supabase } from "../lib/supabase";
 
 interface PriceAlert {
   id: string;
@@ -10,8 +18,8 @@ interface PriceAlert {
   name: string;
   target_price: number;
   current_price: number;
-  condition: 'above' | 'below';
-  status: 'active' | 'triggered' | 'paused';
+  condition: "above" | "below";
+  status: "active" | "triggered" | "paused";
   created_at: string;
   triggered_at?: string;
 }
@@ -24,10 +32,10 @@ export const PriceAlertsPage: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [cryptoPrices, setCryptoPrices] = useState<Record<string, number>>({});
   const [newAlert, setNewAlert] = useState({
-    symbol: '',
-    name: '',
-    target_price: '',
-    condition: 'above' as 'above' | 'below'
+    symbol: "",
+    name: "",
+    target_price: "",
+    condition: "above" as "above" | "below",
   });
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
@@ -41,7 +49,16 @@ export const PriceAlertsPage: React.FC = () => {
         fetchCryptoPrices();
       }, 30000);
 
-      return () => clearInterval(interval);
+      // Safety timeout to prevent infinite loading
+      const timeout = setTimeout(() => {
+        setLoading(false);
+        console.warn("Loading timeout reached for PriceAlertsPage");
+      }, 10000); // 10 seconds timeout
+
+      return () => {
+        clearInterval(interval);
+        clearTimeout(timeout);
+      };
     }
   }, [session]);
 
@@ -53,15 +70,15 @@ export const PriceAlertsPage: React.FC = () => {
   const fetchAlerts = async () => {
     try {
       const { data, error } = await supabase
-        .from('price_alerts')
-        .select('*')
-        .eq('user_id', session?.user?.id)
-        .order('created_at', { ascending: false });
+        .from("price_alerts")
+        .select("*")
+        .eq("user_id", session?.user?.id)
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
       setAlerts(data || []);
     } catch (error) {
-      console.error('Error fetching alerts:', error);
+      console.error("Error fetching alerts:", error);
     } finally {
       setLoading(false);
     }
@@ -71,22 +88,22 @@ export const PriceAlertsPage: React.FC = () => {
     try {
       // Fetch prices for common cryptocurrencies
       const response = await fetch(
-        'https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin,cardano,solana,polkadot,matic-network,chainlink,avalanche-2,uniswap&vs_currencies=usd'
+        "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,binancecoin,cardano,solana,polkadot,matic-network,chainlink,avalanche-2,uniswap&vs_currencies=usd"
       );
       const data = await response.json();
-      
+
       const prices: Record<string, number> = {};
       const symbolMap: Record<string, string> = {
-        'bitcoin': 'BTC',
-        'ethereum': 'ETH',
-        'binancecoin': 'BNB',
-        'cardano': 'ADA',
-        'solana': 'SOL',
-        'polkadot': 'DOT',
-        'matic-network': 'MATIC',
-        'chainlink': 'LINK',
-        'avalanche-2': 'AVAX',
-        'uniswap': 'UNI'
+        bitcoin: "BTC",
+        ethereum: "ETH",
+        binancecoin: "BNB",
+        cardano: "ADA",
+        solana: "SOL",
+        polkadot: "DOT",
+        "matic-network": "MATIC",
+        chainlink: "LINK",
+        "avalanche-2": "AVAX",
+        uniswap: "UNI",
       };
 
       Object.entries(data).forEach(([id, priceData]: [string, any]) => {
@@ -95,18 +112,19 @@ export const PriceAlertsPage: React.FC = () => {
       setCryptoPrices(prices);
       setLastUpdated(new Date());
     } catch (error) {
-      console.error('Error fetching crypto prices:', error);
+      console.error("Error fetching crypto prices:", error);
     }
   };
 
   const checkAlerts = () => {
-    alerts.forEach(alert => {
-      if (alert.status === 'active') {
+    alerts.forEach((alert) => {
+      if (alert.status === "active") {
         const currentPrice = cryptoPrices[alert.symbol];
         if (currentPrice) {
-          const shouldTrigger = 
-            (alert.condition === 'above' && currentPrice >= alert.target_price) ||
-            (alert.condition === 'below' && currentPrice <= alert.target_price);
+          const shouldTrigger =
+            (alert.condition === "above" &&
+              currentPrice >= alert.target_price) ||
+            (alert.condition === "below" && currentPrice <= alert.target_price);
 
           if (shouldTrigger) {
             triggerAlert(alert.id);
@@ -119,45 +137,53 @@ export const PriceAlertsPage: React.FC = () => {
   const triggerAlert = async (alertId: string) => {
     try {
       await supabase
-        .from('price_alerts')
+        .from("price_alerts")
         .update({
-          status: 'triggered',
-          triggered_at: new Date().toISOString()
+          status: "triggered",
+          triggered_at: new Date().toISOString(),
         })
-        .eq('id', alertId);
+        .eq("id", alertId);
 
       // Show global toast notification
-      const alert = alerts.find(a => a.id === alertId);
+      const alert = alerts.find((a) => a.id === alertId);
       if (alert) {
         addToast(
           `🚨 ${alert.symbol} Alert Triggered! Price has gone ${alert.condition} $${alert.target_price}`,
-          'info',
+          "info",
           8000 // Show for 8 seconds
         );
 
         // Add to main notifications system
-        const existingNotifications = JSON.parse(localStorage.getItem('trading-journal-notifications') || '[]');
+        const existingNotifications = JSON.parse(
+          localStorage.getItem("trading-journal-notifications") || "[]"
+        );
         const newNotification = {
           id: `price-${alertId}-${Date.now()}`,
-          type: 'price_alert',
+          type: "price_alert",
           title: `${alert.symbol} Alert Triggered!`,
           message: `${alert.symbol} has gone ${alert.condition} $${alert.target_price} (Current: $${alert.current_price})`,
           timestamp: new Date().toISOString(),
           read: false,
-          priority: 'high',
-          source: 'Price Alerts',
-          actionUrl: '/price-alerts',
-          metadata: { alertId: alertId }
+          priority: "high",
+          source: "Price Alerts",
+          actionUrl: "/price-alerts",
+          metadata: { alertId: alertId },
         };
 
-        const updatedNotifications = [newNotification, ...existingNotifications];
-        localStorage.setItem('trading-journal-notifications', JSON.stringify(updatedNotifications));
+        const updatedNotifications = [
+          newNotification,
+          ...existingNotifications,
+        ];
+        localStorage.setItem(
+          "trading-journal-notifications",
+          JSON.stringify(updatedNotifications)
+        );
       }
 
       // Refresh alerts
       fetchAlerts();
     } catch (error) {
-      console.error('Error triggering alert:', error);
+      console.error("Error triggering alert:", error);
     }
   };
 
@@ -165,12 +191,12 @@ export const PriceAlertsPage: React.FC = () => {
     try {
       const targetPrice = parseFloat(newAlert.target_price);
       if (isNaN(targetPrice) || targetPrice <= 0) {
-        alert('Please enter a valid target price');
+        alert("Please enter a valid target price");
         return;
       }
 
       const { data, error } = await supabase
-        .from('price_alerts')
+        .from("price_alerts")
         .insert([
           {
             user_id: session?.user?.id,
@@ -179,8 +205,8 @@ export const PriceAlertsPage: React.FC = () => {
             target_price: targetPrice,
             current_price: cryptoPrices[newAlert.symbol.toUpperCase()] || 0,
             condition: newAlert.condition,
-            status: 'active'
-          }
+            status: "active",
+          },
         ])
         .select();
 
@@ -191,70 +217,75 @@ export const PriceAlertsPage: React.FC = () => {
       }
 
       setShowAddModal(false);
-      setNewAlert({ symbol: '', name: '', target_price: '', condition: 'above' });
+      setNewAlert({
+        symbol: "",
+        name: "",
+        target_price: "",
+        condition: "above",
+      });
     } catch (error) {
-      console.error('Error adding alert:', error);
-      alert('Failed to create alert. Please try again.');
+      console.error("Error adding alert:", error);
+      alert("Failed to create alert. Please try again.");
     }
   };
 
   const handleDeleteAlert = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this alert?')) return;
+    if (!window.confirm("Are you sure you want to delete this alert?")) return;
 
     try {
       const { error } = await supabase
-        .from('price_alerts')
+        .from("price_alerts")
         .delete()
-        .eq('id', id);
+        .eq("id", id);
 
       if (error) throw error;
 
-      setAlerts(alerts.filter(a => a.id !== id));
+      setAlerts(alerts.filter((a) => a.id !== id));
     } catch (error) {
-      console.error('Error deleting alert:', error);
+      console.error("Error deleting alert:", error);
     }
   };
 
   const handleToggleStatus = async (alert: PriceAlert) => {
-    const newStatus = alert.status === 'active' ? 'paused' : 'active';
-    
+    const newStatus = alert.status === "active" ? "paused" : "active";
+
     try {
       const { error } = await supabase
-        .from('price_alerts')
+        .from("price_alerts")
         .update({ status: newStatus })
-        .eq('id', alert.id);
+        .eq("id", alert.id);
 
       if (error) throw error;
 
-      setAlerts(alerts.map(a => 
-        a.id === alert.id ? { ...a, status: newStatus } : a
-      ));
+      setAlerts(
+        alerts.map((a) => (a.id === alert.id ? { ...a, status: newStatus } : a))
+      );
     } catch (error) {
-      console.error('Error updating alert status:', error);
+      console.error("Error updating alert status:", error);
     }
   };
 
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
       minimumFractionDigits: 2,
-      maximumFractionDigits: 6
+      maximumFractionDigits: 6,
     }).format(amount);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   // Request notification permission
   useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
+    if ("Notification" in window && Notification.permission === "default") {
       Notification.requestPermission();
     }
   }, []);
@@ -278,11 +309,13 @@ export const PriceAlertsPage: React.FC = () => {
           <Bell className="w-6 h-6 text-white" />
           <h1 className="text-2xl font-bold text-white">Price Alerts</h1>
         </div>
-        <p className="text-gray-400 text-lg mb-2">Get notified when cryptocurrencies reach your target prices</p>
+        <p className="text-gray-400 text-lg mb-2">
+          Get notified when cryptocurrencies reach your target prices
+        </p>
         <div className="flex items-center justify-center gap-4 text-sm">
           <span className="text-gray-500">
-            {alerts.filter(a => a.status === 'active').length} active alerts •
-            {alerts.filter(a => a.status === 'triggered').length} triggered
+            {alerts.filter((a) => a.status === "active").length} active alerts •
+            {alerts.filter((a) => a.status === "triggered").length} triggered
           </span>
           {lastUpdated && (
             <span className="text-yellow-400 flex items-center gap-1">
@@ -313,8 +346,13 @@ export const PriceAlertsPage: React.FC = () => {
         {alerts.length === 0 ? (
           <div className="p-12 text-center">
             <Bell className="w-16 h-16 text-gray-500 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-300 mb-2">No Price Alerts Yet</h3>
-            <p className="text-gray-400 mb-4">Set up alerts to get notified when cryptocurrencies reach your target prices</p>
+            <h3 className="text-xl font-semibold text-gray-300 mb-2">
+              No Price Alerts Yet
+            </h3>
+            <p className="text-gray-400 mb-4">
+              Set up alerts to get notified when cryptocurrencies reach your
+              target prices
+            </p>
             <button
               onClick={() => setShowAddModal(true)}
               className="px-6 py-3 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white font-bold rounded-lg transition-all duration-200 transform hover:scale-105"
@@ -327,34 +365,48 @@ export const PriceAlertsPage: React.FC = () => {
             {alerts.map((alert) => {
               const currentPrice = cryptoPrices[alert.symbol];
               const priceDiff = currentPrice - alert.target_price;
-              const isNearTarget = Math.abs(priceDiff) / alert.target_price < 0.05; // Within 5%
-              
+              const isNearTarget =
+                Math.abs(priceDiff) / alert.target_price < 0.05; // Within 5%
+
               return (
-                <div key={alert.id} className="p-6 hover:bg-slate-700/50 transition-all duration-200">
+                <div
+                  key={alert.id}
+                  className="p-6 hover:bg-slate-700/50 transition-all duration-200"
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-bold text-white">{alert.symbol}</h3>
-                        <span className="text-gray-400 text-sm">{alert.name}</span>
-                        <div className={`px-2 py-1 rounded-full text-xs font-bold ${
-                          alert.status === 'active' ? 'bg-green-900 text-green-100' :
-                          alert.status === 'triggered' ? 'bg-yellow-900 text-yellow-100' :
-                          'bg-gray-700 text-gray-300'
-                        }`}>
+                        <h3 className="text-lg font-bold text-white">
+                          {alert.symbol}
+                        </h3>
+                        <span className="text-gray-400 text-sm">
+                          {alert.name}
+                        </span>
+                        <div
+                          className={`px-2 py-1 rounded-full text-xs font-bold ${
+                            alert.status === "active"
+                              ? "bg-green-900 text-green-100"
+                              : alert.status === "triggered"
+                              ? "bg-yellow-900 text-yellow-100"
+                              : "bg-gray-700 text-gray-300"
+                          }`}
+                        >
                           {alert.status}
                         </div>
-                        {isNearTarget && alert.status === 'active' && (
+                        {isNearTarget && alert.status === "active" && (
                           <span className="px-2 py-1 rounded-full text-xs font-bold bg-orange-900 text-orange-100">
                             Near Target
                           </span>
                         )}
                       </div>
-                      
+
                       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
                         <div>
                           <span className="text-gray-400">Current Price:</span>
                           <div className="font-mono font-bold text-white">
-                            {currentPrice ? formatCurrency(currentPrice) : 'Loading...'}
+                            {currentPrice
+                              ? formatCurrency(currentPrice)
+                              : "Loading..."}
                           </div>
                         </div>
                         <div>
@@ -365,38 +417,61 @@ export const PriceAlertsPage: React.FC = () => {
                         </div>
                         <div>
                           <span className="text-gray-400">Condition:</span>
-                          <div className={`font-bold flex items-center gap-1 ${
-                            alert.condition === 'above' ? 'text-green-400' : 'text-red-400'
-                          }`}>
-                            {alert.condition === 'above' ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
-                            {alert.condition === 'above' ? 'Above' : 'Below'}
+                          <div
+                            className={`font-bold flex items-center gap-1 ${
+                              alert.condition === "above"
+                                ? "text-green-400"
+                                : "text-red-400"
+                            }`}
+                          >
+                            {alert.condition === "above" ? (
+                              <TrendingUp className="w-4 h-4" />
+                            ) : (
+                              <TrendingDown className="w-4 h-4" />
+                            )}
+                            {alert.condition === "above" ? "Above" : "Below"}
                           </div>
                         </div>
                         <div>
                           <span className="text-gray-400">
-                            {alert.status === 'triggered' ? 'Triggered:' : 'Created:'}
+                            {alert.status === "triggered"
+                              ? "Triggered:"
+                              : "Created:"}
                           </span>
                           <div className="text-white">
-                            {formatDate(alert.status === 'triggered' ? alert.triggered_at! : alert.created_at)}
+                            {formatDate(
+                              alert.status === "triggered"
+                                ? alert.triggered_at!
+                                : alert.created_at
+                            )}
                           </div>
                         </div>
                       </div>
 
-                      {currentPrice && alert.status === 'active' && (
+                      {currentPrice && alert.status === "active" && (
                         <div className="mt-3">
-                          <div className={`text-sm ${
-                            priceDiff > 0 ? 'text-green-400' : 'text-red-400'
-                          }`}>
-                            {priceDiff > 0 ? '+' : ''}{formatCurrency(priceDiff)} from target
-                            {isNearTarget && ' • Very close to target!'}
+                          <div
+                            className={`text-sm ${
+                              priceDiff > 0 ? "text-green-400" : "text-red-400"
+                            }`}
+                          >
+                            {priceDiff > 0 ? "+" : ""}
+                            {formatCurrency(priceDiff)} from target
+                            {isNearTarget && " • Very close to target!"}
                           </div>
                           <div className="w-full bg-slate-700 rounded-full h-2 mt-2">
                             <div
                               className={`h-2 rounded-full ${
-                                alert.condition === 'above' ? 'bg-green-500' : 'bg-red-500'
+                                alert.condition === "above"
+                                  ? "bg-green-500"
+                                  : "bg-red-500"
                               }`}
                               style={{
-                                width: `${Math.min(Math.abs(priceDiff) / alert.target_price * 100, 100)}%`
+                                width: `${Math.min(
+                                  (Math.abs(priceDiff) / alert.target_price) *
+                                    100,
+                                  100
+                                )}%`,
                               }}
                             ></div>
                           </div>
@@ -408,11 +483,15 @@ export const PriceAlertsPage: React.FC = () => {
                       <button
                         onClick={() => handleToggleStatus(alert)}
                         className={`p-2 rounded-lg transition-colors ${
-                          alert.status === 'active'
-                            ? 'bg-orange-600 hover:bg-orange-700 text-white'
-                            : 'bg-green-600 hover:bg-green-700 text-white'
+                          alert.status === "active"
+                            ? "bg-orange-600 hover:bg-orange-700 text-white"
+                            : "bg-green-600 hover:bg-green-700 text-white"
                         }`}
-                        title={alert.status === 'active' ? 'Pause Alert' : 'Activate Alert'}
+                        title={
+                          alert.status === "active"
+                            ? "Pause Alert"
+                            : "Activate Alert"
+                        }
                       >
                         <Clock className="w-4 h-4" />
                       </button>
@@ -434,23 +513,33 @@ export const PriceAlertsPage: React.FC = () => {
 
       {/* Alert Settings */}
       <div className="bg-gradient-to-r from-yellow-900 to-orange-900 border border-yellow-700 rounded-lg p-6">
-        <h3 className="text-yellow-200 font-bold text-lg mb-3">💡 Alert Tips</h3>
+        <h3 className="text-yellow-200 font-bold text-lg mb-3">
+          💡 Alert Tips
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-yellow-100">
           <div className="bg-yellow-800/50 p-3 rounded-lg">
             <div className="font-semibold mb-1">🎯 Smart Targets</div>
-            <div className="text-sm">Set alerts at realistic price levels based on technical analysis</div>
+            <div className="text-sm">
+              Set alerts at realistic price levels based on technical analysis
+            </div>
           </div>
           <div className="bg-yellow-800/50 p-3 rounded-lg">
             <div className="font-semibold mb-1">🔔 Browser Notifications</div>
-            <div className="text-sm">Enable notifications to get instant alerts when targets are hit</div>
+            <div className="text-sm">
+              Enable notifications to get instant alerts when targets are hit
+            </div>
           </div>
           <div className="bg-yellow-800/50 p-3 rounded-lg">
             <div className="font-semibold mb-1">📊 Multiple Alerts</div>
-            <div className="text-sm">Create multiple alerts for different price points and conditions</div>
+            <div className="text-sm">
+              Create multiple alerts for different price points and conditions
+            </div>
           </div>
           <div className="bg-yellow-800/50 p-3 rounded-lg">
             <div className="font-semibold mb-1">⏰ Monitor Active Alerts</div>
-            <div className="text-sm">Regularly review and update your alerts based on market conditions</div>
+            <div className="text-sm">
+              Regularly review and update your alerts based on market conditions
+            </div>
           </div>
         </div>
       </div>
@@ -459,17 +548,23 @@ export const PriceAlertsPage: React.FC = () => {
       {showAddModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-slate-800 border border-slate-700 rounded-lg p-6 w-full max-w-md mx-4">
-            <h3 className="text-xl font-bold text-white mb-4">Create Price Alert</h3>
+            <h3 className="text-xl font-bold text-white mb-4">
+              Create Price Alert
+            </h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Cryptocurrency Symbol</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Cryptocurrency Symbol
+                </label>
                 <select
                   value={newAlert.symbol}
-                  onChange={(e) => setNewAlert({
-                    ...newAlert, 
-                    symbol: e.target.value,
-                    name: e.target.selectedOptions[0]?.text || ''
-                  })}
+                  onChange={(e) =>
+                    setNewAlert({
+                      ...newAlert,
+                      symbol: e.target.value,
+                      name: e.target.selectedOptions[0]?.text || "",
+                    })
+                  }
                   className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-yellow-500"
                 >
                   <option value="">Select a cryptocurrency</option>
@@ -486,25 +581,31 @@ export const PriceAlertsPage: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Alert Condition</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Alert Condition
+                </label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
-                    onClick={() => setNewAlert({...newAlert, condition: 'above'})}
+                    onClick={() =>
+                      setNewAlert({ ...newAlert, condition: "above" })
+                    }
                     className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                      newAlert.condition === 'above'
-                        ? 'bg-green-600 text-white'
-                        : 'bg-slate-600 text-gray-300 hover:bg-slate-500'
+                      newAlert.condition === "above"
+                        ? "bg-green-600 text-white"
+                        : "bg-slate-600 text-gray-300 hover:bg-slate-500"
                     }`}
                   >
                     <TrendingUp className="w-4 h-4 inline mr-1" />
                     Price Goes Above
                   </button>
                   <button
-                    onClick={() => setNewAlert({...newAlert, condition: 'below'})}
+                    onClick={() =>
+                      setNewAlert({ ...newAlert, condition: "below" })
+                    }
                     className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                      newAlert.condition === 'below'
-                        ? 'bg-red-600 text-white'
-                        : 'bg-slate-600 text-gray-300 hover:bg-slate-500'
+                      newAlert.condition === "below"
+                        ? "bg-red-600 text-white"
+                        : "bg-slate-600 text-gray-300 hover:bg-slate-500"
                     }`}
                   >
                     <TrendingDown className="w-4 h-4 inline mr-1" />
@@ -513,19 +614,24 @@ export const PriceAlertsPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">Target Price ($)</label>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Target Price ($)
+                </label>
                 <input
                   type="number"
                   step="any"
                   value={newAlert.target_price}
-                  onChange={(e) => setNewAlert({...newAlert, target_price: e.target.value})}
+                  onChange={(e) =>
+                    setNewAlert({ ...newAlert, target_price: e.target.value })
+                  }
                   className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-yellow-500"
                   placeholder="50000"
                 />
               </div>
               {newAlert.symbol && cryptoPrices[newAlert.symbol] && (
                 <div className="text-sm text-gray-400">
-                  Current {newAlert.symbol} price: {formatCurrency(cryptoPrices[newAlert.symbol])}
+                  Current {newAlert.symbol} price:{" "}
+                  {formatCurrency(cryptoPrices[newAlert.symbol])}
                 </div>
               )}
             </div>
@@ -538,7 +644,12 @@ export const PriceAlertsPage: React.FC = () => {
               </button>
               <button
                 onClick={handleAddAlert}
-                disabled={!newAlert.symbol || !newAlert.target_price || isNaN(parseFloat(newAlert.target_price)) || parseFloat(newAlert.target_price) <= 0}
+                disabled={
+                  !newAlert.symbol ||
+                  !newAlert.target_price ||
+                  isNaN(parseFloat(newAlert.target_price)) ||
+                  parseFloat(newAlert.target_price) <= 0
+                }
                 className="flex-1 px-4 py-2 bg-gradient-to-r from-yellow-600 to-orange-600 hover:from-yellow-700 hover:to-orange-700 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Create Alert
