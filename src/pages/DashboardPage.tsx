@@ -879,7 +879,7 @@ export const DashboardPage: React.FC = () => {
             <span className="text-white font-bold text-lg">Y</span>
           </div>
           <div>
-            <h3 className="text-white font-bold text-lg">Built by Your Name</h3>
+            <h3 className="text-white font-bold text-lg">Built by Udara Chamidu</h3>
             <p className="text-indigo-200 text-sm">Full-Stack Developer & Crypto Enthusiast</p>
           </div>
         </div>
