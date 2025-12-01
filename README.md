@@ -5,7 +5,7 @@
 **Trading Journal** is a comprehensive, professional-grade web application designed specifically for traders implementing ICT (Inner Circle Trader) Smart Money Concepts methodology. Built with modern web technologies, this platform provides traders with sophisticated tools for trade management, performance analysis, risk calculation, and continuous improvement.
 
 The application features a clean, intuitive interface with extensive blue-purple gradient theming, PWA capabilities for mobile access, and comprehensive data export functionality. It serves as a complete trading management solution for serious traders seeking to implement structured trading methodologies.
-
+  
 ---
 
 ## 🎯 Application Overview
