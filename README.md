@@ -25,7 +25,7 @@ The application features a clean, intuitive interface with extensive blue-purple
 
 ### **Key Differentiators**
 - **ICT-Specific**: Tailored for Smart Money Concepts implementation
-- **Professional Design**: Enterprise-grade UI/UX with modern aesthetics
+- **Professional Design**: Enterprise-grade UI/UX with modern aesthetics  
 - **PWA Ready**: Mobile app experience with offline capabilities
 - **Data Export**: Complete data portability for external analysis
 - **Risk Tools**: Integrated position sizing and risk management
