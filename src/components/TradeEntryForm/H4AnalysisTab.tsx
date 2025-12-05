@@ -32,9 +32,7 @@ export const H4AnalysisTab: React.FC<H4AnalysisTabProps> = ({ data, onChange }) 
             className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
           >
             <option value="">Select POI type</option>
-            <option value="Order Block">Order Block</option>
-            <option value="FVG">FVG</option>
-            <option value="Liquidity Pool">Golden Ratio</option>
+            <option value="Golden Ratio">Golden Ratio (0.618-0.786)</option>
           </select>
         </div>
       </div>

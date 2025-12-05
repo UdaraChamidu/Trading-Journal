@@ -44,10 +44,8 @@ export const M1EntryTab: React.FC<M1EntryTabProps> = ({ data, onChange }) => {
             className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
           >
             <option value="">Select entry type</option>
-            <option value="Order Block">Order Block</option>
-            <option value="FVG">FVG</option>
-            <option value="Golden Ratio only">Golden Ratio only (Good)</option>
-            <option value="OB/FVG">OB/FVG (Bonus)</option>
+            <option value="BOS + Golden Ratio">BOS + Golden Ratio</option>
+            <option value="Golden Ratio only">Golden Ratio only</option>
           </select>
         </div>
 

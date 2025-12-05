@@ -172,16 +172,14 @@ export const TradingPlanPage: React.FC = () => {
 - Shows micro-reversal at 15min Golden Area.
 - **No 1min CHoCH = No entry.**
 
-**Step 2: After 1min CHoCH, Watch for BOS or Golden Ratio**
+**Step 2: After 1min CHoCH, Watch for Golden Ratio**
 1. **BOS + Golden Ratio (Best):** Wait for 1min BOS, draw Fib, enter at 0.618-0.786.
-2. **Golden Ratio only (Good):** Immediate retracement to 0.618-0.786. Faster, slightly more risk.
-3. **BOS only (Acceptable):** Enter on retest of BOS level if strong.
+2. **Golden Ratio only (Good):** Immediate retracement to 0.618-0.786. Faster entry.
 
 **Step 3: Multiple Entries Allowed**
 - Entry 1: At 0.618 (conservative)
 - Entry 2: At 0.786 (extended)
 - Entry 3: At BOS retest
-- Entry 4: At OB/FVG (bonus)
 *Each entry is a separate trade with own SL. Max 2% total risk.*`,
           entry_rules: `**Checklist before entry:**
 - [ ] 4H BOS confirmed (for SAFE trades)
@@ -190,7 +188,7 @@ export const TradingPlanPage: React.FC = () => {
 - [ ] 15min BOS confirmed
 - [ ] 15min Golden Ratio reached
 - [ ] 1min CHoCH occurred (mandatory)
-- [ ] 1min entry trigger present (BOS/Golden Ratio)
+- [ ] 1min Golden Ratio reached
 
 **Two Trade Types:**
 1. **RISKY (Counter-Trend):** Trade 15min reversal AGAINST 4H trend. High R:R (1:25+), Low Win Rate (30-40%).
