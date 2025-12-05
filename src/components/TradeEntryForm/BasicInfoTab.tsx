@@ -64,7 +64,7 @@ export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ data, onChange, acco
         </div>
 
         <div>
-          <LabelWithTooltip label="Trading Session" required />
+          <LabelWithTooltip label="Trading Session"/>
           <select
             value={data.session || ''}
             onChange={(e) => onChange('session', e.target.value)}
@@ -78,43 +78,36 @@ export const BasicInfoTab: React.FC<BasicInfoTabProps> = ({ data, onChange, acco
         </div>
       </div>
 
+
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <LabelWithTooltip label="Trade Type" required term="Trade Type" />
+          <select
+            value={data.trade_type || ''}
+            onChange={(e) => onChange('trade_type', e.target.value)}
+            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+          >
+            <option value="">Select type</option>
+            <option value="SAFE">SAFE (Trend Following - With 4H)</option>
+            <option value="RISKY">RISKY (Counter Trend - Against 4H)</option>
+          </select>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <LabelWithTooltip label="Account Balance" required />
           <input
             type="number"
-            step="0.01"
+            step="1"
             value={data.account_balance || accountBalance}
             onChange={(e) => onChange('account_balance', parseFloat(e.target.value))}
             className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
           />
         </div>
 
-        <div>
-          <LabelWithTooltip label="News Event" />
-          <div className="flex gap-4 mt-2">
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="news_event"
-                checked={data.news_event === false}
-                onChange={() => onChange('news_event', false)}
-                className="w-4 h-4"
-              />
-              <span className="text-gray-300">No</span>
-            </label>
-            <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="radio"
-                name="news_event"
-                checked={data.news_event === true}
-                onChange={() => onChange('news_event', true)}
-                className="w-4 h-4"
-              />
-              <span className="text-gray-300">Yes</span>
-            </label>
-          </div>
-        </div>
+        
       </div>
 
       {data.news_event && (

@@ -124,65 +124,86 @@ export const TradingPlanPage: React.FC = () => {
         .insert([{
           user_id: null, // Shared plan
           is_public: true,
-          plan_title: 'BTC ICT Trading Plan',
-          plan_version: '1.0',
+          plan_title: 'BTC FIBONACCI GOLDEN RATIO TRADING PLAN',
+          plan_version: '2.0',
           plan_status: 'Practice/Learning Phase',
           starting_capital: 100,
-          risk_per_trade: '1-2%',
+          risk_per_trade: '1-2% ($1-$2)',
           primary_asset: 'BTC/USD',
-          trading_style: 'Multi-timeframe ICT (Smart Money Concepts)',
-          h4_analysis: `**Phase 1: 4H Analysis (Bias & Direction)**
+          trading_style: 'Multi-timeframe Fibonacci Golden Ratio Reversals (SMC)',
+          h4_analysis: `**Phase 1: 4H Analysis (Trend & Setup Identification)**
 
-**Objective:** Identify main trend and institutional levels
+**Step 1: Identify Market Structure**
+- Look for **BOS (Break of Structure)**: Price breaks previous high (bullish) or low (bearish)
+- This confirms institutional interest and direction.
 
-**1. Trend Identification**
-- Follow 4H market structure (Higher Highs/Higher Lows OR Lower Highs/Lower Lows)
-- Direction = Trend direction on 4H
+**Step 2: Wait for Retracement to Golden Ratio**
+- After 4H BOS, draw Fibonacci from swing high/low to swing low/high.
+- **Target Zones:**
+  - Primary: 0.618 (Golden Ratio)
+  - Extended: 0.786 (Deep Golden Ratio)
+  - **4H "Golden Area":** 0.618 - 0.786 zone
 
-**2. Mark Key Levels**
-- Order Blocks (OBs): Last bullish/bearish candle before strong move
-- Fair Value Gaps (FVGs): 3-candle imbalance zones
-- Liquidity pools: Equal highs/lows, round numbers
-
-**3. Decision Point**
-- Wait for price to reach 4H POI (OB or FVG)
-- THEN move to 15min timeframe`,
+**Step 3: Wait for Price to Enter Golden Area**
+- Don't jump early. Let price fully enter the zone.
+- **THEN** drop to 15min chart.`,
           m15_confirmation: `**Phase 2: 15min Confirmation (Entry Setup)**
 
-**Objective:** Confirm reversal at 4H POI
+**Step 1: Wait for CHoCH (Change of Character) - MANDATORY**
+- **Downtrend:** Price breaks above previous lower high.
+- **Uptrend:** Price breaks below previous higher low.
+- Signals potential reversal at 4H Golden Area.
+- **No CHoCH = No trade.**
 
-**1. Wait for CHoCH (Change of Character)**
-- Bullish CHoCH: Break of previous lower high (in downtrend)
-- Bearish CHoCH: Break of previous higher low (in uptrend)
-- This confirms institutional interest at the 4H POI
+**Step 2: After CHoCH, Wait for BOS**
+- **Scenario A (RISKY - Against 4H):** 15min CHoCH + BOS opposite to 4H. Higher R:R, lower win rate.
+- **Scenario B (SAFE - With 4H):** 15min CHoCH + BOS aligns with 4H. Lower R:R, higher win rate.
 
-**2. Mark 15min Levels**
-- Identify new OBs after CHoCH
-- Mark FVGs created during the CHoCH move
-- Note: These become your 15min POIs
+**Step 3: Mark 15min Golden Ratio**
+- Draw Fib on the 15min BOS move.
+- Identify 0.618-0.786 zone (15min Golden Area).
 
-**3. Decision Point**
-- Wait for price to retrace to 15min POI
-- THEN move to 1min timeframe`,
+**Step 4: Wait for Price to Retrace**
+- Wait for price to enter 15min Golden Area.
+- **THEN** drop to 1min chart.`,
           m1_execution: `**Phase 3: 1min Execution (Precise Entry)**
 
-**Objective:** Execute trade with optimal entry
+**Step 1: Wait for 1min CHoCH - MANDATORY**
+- Shows micro-reversal at 15min Golden Area.
+- **No 1min CHoCH = No entry.**
 
-**1. Wait for 1min CHoCH**
-- Confirms strength at 15min POI
-- Shows short-term momentum shift
+**Step 2: After 1min CHoCH, Watch for BOS or Golden Ratio**
+1. **BOS + Golden Ratio (Best):** Wait for 1min BOS, draw Fib, enter at 0.618-0.786.
+2. **Golden Ratio only (Good):** Immediate retracement to 0.618-0.786. Faster, slightly more risk.
+3. **BOS only (Acceptable):** Enter on retest of BOS level if strong.
 
-**2. Identify 1min POIs**
-- Order Blocks in 1min
-- Fair Value Gaps in 1min
-- Fibonacci levels (0.618, 0.786 golden ratios)
+**Step 3: Multiple Entries Allowed**
+- Entry 1: At 0.618 (conservative)
+- Entry 2: At 0.786 (extended)
+- Entry 3: At BOS retest
+- Entry 4: At OB/FVG (bonus)
+*Each entry is a separate trade with own SL. Max 2% total risk.*`,
+          entry_rules: `**Checklist before entry:**
+- [ ] 4H BOS confirmed (for SAFE trades)
+- [ ] 4H Golden Ratio reached
+- [ ] 15min CHoCH occurred (mandatory)
+- [ ] 15min BOS confirmed
+- [ ] 15min Golden Ratio reached
+- [ ] 1min CHoCH occurred (mandatory)
+- [ ] 1min entry trigger present (BOS/Golden Ratio)
 
-**3. Entry Execution**
-- If it can identify a single POI clearly, use it to enter.
-- If there are many POIs (FVG + OB), Enter when price touches Golden Pocket.
-- No additional confirmation needed (direct entry)
-- Multiple entries allowed across different 1min POIs (Because of 1 min most of the time trades can be lost)
-- If one trade loss then wait for another BOS or CHOCH in 15 min.`,
+**Two Trade Types:**
+1. **RISKY (Counter-Trend):** Trade 15min reversal AGAINST 4H trend. High R:R (1:25+), Low Win Rate (30-40%).
+2. **SAFE (Trend-Following):** Trade 15min reversal WITH 4H trend. Low R:R (1:10-15), High Win Rate (45-50%).`,
+          special_entries: `**Risk Management:**
+- **Max Risk:** 6% total per day.
+- **Position Size:** \`Risk $ / Stop Loss Distance\`
+- **Stop Loss:** Just beyond Golden Ratio zone (0.786 or 1.0).
+- **Take Profit:** Opposite 4H level (Swing High/Low).
+- **Break-Even:** Move 50% to BE at 1:5 R:R. Let remaining 50% run.`,
+          optimal_hours: '8:00 PM - 7:00 AM (Sri Lanka GMT +5:30)',
+          risk_reward_expectations: `**SAFE Trades:** R:R 1:10 - 1:20 | Win Rate 40-50%
+**RISKY Trades:** R:R 1:20 - 1:30+ | Win Rate 30-40%`,
         }])
         .select();
 
@@ -289,41 +310,7 @@ export const TradingPlanPage: React.FC = () => {
             </select>
           )}
           <h1 className="text-4xl font-bold text-white">{plan.plan_title}</h1>
-          <button
-            onClick={createNewPlan}
-            className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            New Plan
-          </button>
-          {!plan.is_public && !editMode && (
-            <button
-              onClick={() => setEditMode(true)}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-            >
-              <Edit3 className="w-4 h-4" />
-              Edit Plan
-            </button>
-          )}
-          {!plan.is_public && editMode && (
-            <div className="flex gap-2">
-              <button
-                onClick={saveTradingPlan}
-                disabled={saving}
-                className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50"
-              >
-                <Save className="w-4 h-4" />
-                {saving ? 'Saving...' : 'Save'}
-              </button>
-              <button
-                onClick={() => setEditMode(false)}
-                className="flex items-center gap-2 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
-              >
-                <X className="w-4 h-4" />
-                Cancel
-              </button>
-            </div>
-          )}
+          
         </div>
         <p className="text-gray-400 text-lg">{plan.plan_status} - {plan.trading_style}</p>
         <div className="mt-4 text-sm text-gray-500">

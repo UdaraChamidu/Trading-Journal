@@ -46,14 +46,39 @@ export const M1EntryTab: React.FC<M1EntryTabProps> = ({ data, onChange }) => {
             <option value="">Select entry type</option>
             <option value="Order Block">Order Block</option>
             <option value="FVG">FVG</option>
-            <option value="Fib 0.618">Fib 0.618</option>
-            <option value="Fib 0.786">Fib 0.786</option>
-            <option value="OB+FVG">OB+FVG</option>
-            <option value="FVG+Fib">FVG+Fib</option>
-            <option value="Golden Pocket">Golden Pocket</option>
+            <option value="Golden Ratio only">Golden Ratio only (Good)</option>
+            <option value="OB/FVG">OB/FVG (Bonus)</option>
           </select>
         </div>
 
+        <div>
+          <LabelWithTooltip label="1min Golden Ratio Reached" />
+          <div className="flex gap-4 mt-2">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="m1_golden_ratio"
+                checked={data.m1_golden_ratio === false}
+                onChange={() => onChange('m1_golden_ratio', false)}
+                className="w-4 h-4"
+              />
+              <span className="text-gray-300">No</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="m1_golden_ratio"
+                checked={data.m1_golden_ratio === true}
+                onChange={() => onChange('m1_golden_ratio', true)}
+                className="w-4 h-4"
+              />
+              <span className="text-gray-300">Yes</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <LabelWithTooltip label="Entry Count" />
           <select

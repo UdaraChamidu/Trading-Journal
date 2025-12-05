@@ -34,6 +34,10 @@ interface TradeFormData {
   m1_entry_type?: string;
   m1_entry_count?: number;
   m1_notes?: string;
+  trade_type?: 'RISKY' | 'SAFE';
+  m15_bos?: boolean;
+  m15_golden_ratio?: boolean;
+  m1_golden_ratio?: boolean;
   direction?: string;
   entry_price?: number;
   position_size?: number;

@@ -34,35 +34,39 @@ export const H4AnalysisTab: React.FC<H4AnalysisTabProps> = ({ data, onChange }) 
             <option value="">Select POI type</option>
             <option value="Order Block">Order Block</option>
             <option value="FVG">FVG</option>
-            <option value="Liquidity Pool">Liquidity Pool</option>
+            <option value="Liquidity Pool">Golden Ratio</option>
           </select>
         </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <LabelWithTooltip label="POI Price Level" />
-          <input
-            type="number"
-            step="0.01"
-            value={data.h4_poi_price || ''}
-            onChange={(e) => onChange('h4_poi_price', e.target.value ? parseFloat(e.target.value) : null)}
-            placeholder="0.00"
-            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-          />
-        </div>
-
-        <div>
-          <LabelWithTooltip label="Target Price Level" />
-          <input
-            type="number"
-            step="0.01"
-            value={data.h4_target_price || ''}
-            onChange={(e) => onChange('h4_target_price', e.target.value ? parseFloat(e.target.value) : null)}
-            placeholder="0.00"
-            className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-blue-500"
-          />
-        </div>
+        
+      <div>
+              <LabelWithTooltip label="BOS Confirmed" term="BOS" />
+              <div className="flex gap-4 mt-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="m15_bos"
+                    checked={data.m15_bos === false}
+                    onChange={() => onChange('m15_bos', false)}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-gray-300">No</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="m15_bos"
+                    checked={data.m15_bos === true}
+                    onChange={() => onChange('m15_bos', true)}
+                    className="w-4 h-4"
+                  />
+                  <span className="text-gray-300">Yes</span>
+                </label>
+              </div>
+            </div>
+        
       </div>
 
       <div>
