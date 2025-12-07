@@ -158,7 +158,7 @@ export const TradeEntryForm: React.FC<TradeEntryFormProps> = ({ onClose, editing
 
       // Create a timeout promise
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Request timed out. Please check your connection.')), 15000);
+        setTimeout(() => reject(new Error('Request timed out. Please check your connection or database status.')), 60000);
       });
 
       // Execute the appropriate Supabase query
