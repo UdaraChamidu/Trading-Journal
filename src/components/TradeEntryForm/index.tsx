@@ -156,21 +156,35 @@ export const TradeEntryForm: React.FC<TradeEntryFormProps> = ({ onClose, editing
         }
       }
 
-      if (editingTrade) {
-        const { error } = await supabase
-          .from('trades')
-          .update(submitData)
-          .eq('id', editingTrade.id);
+      // Create a timeout promise
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Request timed out. Please check your connection.')), 15000);
+      });
 
-        if (error) throw error;
-        addToast('Trade updated successfully', 'success');
-      } else {
-        const { error } = await supabase
-          .from('trades')
-          .insert([submitData]);
+      // Execute the appropriate Supabase query
+      const supabasePromise = (async () => {
+        if (editingTrade) {
+          const { error } = await supabase
+            .from('trades')
+            .update(submitData)
+            .eq('id', editingTrade.id);
+          if (error) throw error;
+          return 'updated';
+        } else {
+          const { error } = await supabase
+            .from('trades')
+            .insert([submitData]);
+          if (error) throw error;
+          return 'created';
+        }
+      })();
 
-        if (error) throw error;
-        addToast('Trade created successfully', 'success');
+      // Race against the timeout
+      const result = await Promise.race([supabasePromise, timeoutPromise]);
+
+      addToast(`Trade ${result} successfully`, 'success');
+      
+      if (result === 'created') {
         setFormData({});
         setCurrentTab(0);
       }
