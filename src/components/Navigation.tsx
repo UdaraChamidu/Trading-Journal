@@ -224,7 +224,7 @@ export const Navigation: React.FC<NavigationProps> = ({ mobileMenuOpen, onCloseM
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
             <span className="text-white font-bold text-lg group-hover:text-blue-300 transition-colors">
-              Crypto Hub
+              Level Up Trading
             </span>
           </NavLink>
         </div>
