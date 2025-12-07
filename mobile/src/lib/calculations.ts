@@ -73,4 +73,3 @@ export const getDayOfWeek = (date: string): string => {
   const d = new Date(date);
   return days[d.getUTCDay()];
 };
-

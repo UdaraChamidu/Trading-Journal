@@ -25,7 +25,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     async function initializeAuth() {
       try {
-        // 1. Get initial session
         const { data: { session: initialSession } } = await supabase.auth.getSession();
         
         if (mounted) {
@@ -37,29 +36,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (error) {
         console.error("Auth initialization error:", error);
       } finally {
-        // 2. Ensure loading is set to false ONLY after initial check is done
         if (mounted) {
           setLoading(false);
         }
       }
 
-      // 3. Listen for changes
       const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: AuthChangeEvent, currentSession: Session | null) => {
         if (mounted) {
-          setSession(currentSession);
-          
-          if (currentSession?.user) {
-            // Only fetch profile if we don't have it or if the user changed
-            // This prevents double-fetching on refresh
-            if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-               await fetchUserProfile(currentSession.user.id);
+            setSession(currentSession);
+            if (currentSession?.user) {
+                 if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+                    await fetchUserProfile(currentSession.user.id);
+                }
+            } else {
+                setUserProfile(null);
             }
-          } else {
-            setUserProfile(null);
-          }
-          
-          // Ensure loading is false after any auth change
-          setLoading(false); 
+            setLoading(false);
         }
       });
 
@@ -82,11 +74,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) {
         console.error('Error fetching profile:', error);
-        return; // Don't throw, just return
+        return;
       }
 
       if (!data) {
-        // Profile doesn't exist, create it
         const { data: newProfile, error: insertError } = await supabase
           .from('users_profile')
           .insert([{ id: userId }])
@@ -151,4 +142,3 @@ export const useAuth = () => {
   }
   return context;
 };
-
