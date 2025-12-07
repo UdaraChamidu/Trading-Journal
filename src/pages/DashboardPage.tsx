@@ -477,7 +477,7 @@ export const DashboardPage: React.FC = () => {
         <div className="inline-flex items-center gap-3 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 px-8 py-4 rounded-full mb-6 shadow-2xl shadow-blue-500/25">
           <Rocket className="w-8 h-8 text-white" />
           <div>
-            <h1 className="text-4xl font-bold text-white">🚀 Crypto Trading Hub Dashboard</h1>
+            <h1 className="text-4xl font-bold text-white">🚀 Level Up Trading Dashboard</h1>
             <p className="text-blue-100 text-lg">Your Complete Crypto Trading & Investment Command Center</p>
           </div>
         </div>
