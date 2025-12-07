@@ -52,7 +52,7 @@ export const WeeklyReviewPage: React.FC = () => {
           .maybeSingle();
 
         const { data: weekTrades } = await supabase
-          .from('trades')
+          .from('trades_new')
           .select('*')
           .eq('user_id', session.user.id)
           .gte('trade_date', weekStart)

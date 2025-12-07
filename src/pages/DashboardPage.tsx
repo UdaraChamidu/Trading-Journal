@@ -188,7 +188,7 @@ export const DashboardPage: React.FC = () => {
   const fetchTradingStats = async () => {
     try {
       const { data: trades } = await supabase
-        .from('trades')
+        .from('trades_new')
         .select('*')
         .eq('user_id', session?.user?.id)
         .order('trade_date', { ascending: false });
@@ -382,7 +382,7 @@ export const DashboardPage: React.FC = () => {
 
       // Get recent trades
       const { data: recentTrades } = await supabase
-        .from('trades')
+        .from('trades_new')
         .select('*')
         .eq('user_id', session?.user?.id)
         .order('created_at', { ascending: false })

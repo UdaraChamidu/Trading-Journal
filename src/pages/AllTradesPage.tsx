@@ -108,7 +108,7 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({
       );
 
       let query = supabase
-        .from("trades")
+        .from("trades_new")
         .select("*")
         .eq("user_id", session.user.id)
         .order("trade_date", { ascending: false });
@@ -171,7 +171,7 @@ export const AllTradesPage: React.FC<AllTradesPageProps> = ({
 
     try {
       const { error } = await supabase
-        .from("trades")
+        .from("trades_new")
         .delete()
         .eq("id", tradeId);
 

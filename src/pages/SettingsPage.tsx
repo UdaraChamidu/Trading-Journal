@@ -59,7 +59,7 @@ export const SettingsPage: React.FC = () => {
     try {
       const [{ data: trades }, { data: reviews }, { data: goals }, { data: notes }, { data: profile }] =
         await Promise.all([
-          supabase.from('trades').select('*').eq('user_id', session.user.id),
+          supabase.from('trades_new').select('*').eq('user_id', session.user.id),
           supabase.from('weekly_reviews').select('*').eq('user_id', session.user.id),
           supabase.from('goals').select('*').eq('user_id', session.user.id),
           supabase.from('general_notes').select('*').eq('user_id', session.user.id),

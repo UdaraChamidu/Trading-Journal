@@ -47,7 +47,7 @@ export const AICoachPage: React.FC = () => {
         // Fetch user's trading stats for context
         if (session) {
           const { data: trades } = await supabase
-            .from('trades')
+            .from('trades_new')
             .select('*')
             .eq('user_id', session.user.id);
 

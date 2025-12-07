@@ -28,7 +28,7 @@ export const AnalyticsPage: React.FC = () => {
 
       try {
         const { data: trades } = await supabase
-          .from('trades')
+          .from('trades_new')
           .select('*')
           .eq('user_id', session.user.id);
 

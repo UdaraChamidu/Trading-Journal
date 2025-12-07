@@ -98,7 +98,7 @@ export const PublicProfilePage: React.FC = () => {
       const [postsResult, holdingsResult, tradesResult, profileResult] = await Promise.allSettled([
         supabase.from('social_posts').select('*').eq('user_id', session?.user?.id).order('created_at', { ascending: false }),
         supabase.from('portfolio_holdings').select('*').eq('user_id', session?.user?.id).order('created_at', { ascending: false }),
-        supabase.from('trades').select('*').eq('user_id', session?.user?.id).order('trade_date', { ascending: false }).limit(10),
+        supabase.from('trades_new').select('*').eq('user_id', session?.user?.id).order('trade_date', { ascending: false }).limit(10),
         supabase.from('users_profile').select('*').eq('id', session?.user?.id).single()
       ]);
 

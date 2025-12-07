@@ -165,14 +165,14 @@ export const TradeEntryForm: React.FC<TradeEntryFormProps> = ({ onClose, editing
       const supabasePromise = (async () => {
         if (editingTrade) {
           const { error } = await supabase
-            .from('trades')
+            .from('trades_new')
             .update(submitData)
             .eq('id', editingTrade.id);
           if (error) throw error;
           return 'updated';
         } else {
           const { error } = await supabase
-            .from('trades')
+            .from('trades_new')
             .insert([submitData]);
           if (error) throw error;
           return 'created';
